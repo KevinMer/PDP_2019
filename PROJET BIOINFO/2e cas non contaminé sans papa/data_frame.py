@@ -7,10 +7,13 @@ if df.shape[0] > 32:
 else:
     print("Pere absent")
 
-Allele = df[["Allele 1","Allele 2", "Allele 3"]]
-Val = Allele.values
-print(Val)
+#for val in range(df.shape[0]-1):
+#    if df["Allele 1"][val] == df["Allele 2"][val+1]:
+#        print(df["Marker"][val])
 
-for val in range(df.shape[0]-1):
-    if df["Allele 1"][val] == df["Allele 2"][val+1]:
-        print(df["Marker"][val])
+def concordance(data_frame):
+    Allele = data_frame[["Allele 1","Allele 2", "Allele 3"]].values
+    print(Allele)
+    for val in range(data_frame.shape[0] - 1):
+        if Allele[val] in Allele[val + 1]:
+            print("Ok")
