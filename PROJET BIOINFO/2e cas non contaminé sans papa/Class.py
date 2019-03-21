@@ -9,10 +9,10 @@ class Patient:
         self.hauteur = hauteur
         self.informatif = informatif
 
-    def allele_semblable(self,foetus):
+    def allele_semblable(self,mere):
         Semblable = True
         for Allele in range(3):
-            if str(self.allele[Allele]) != str(foetus.allele[Allele]):
+            if str(self.allele[Allele]) != str(mere.allele[Allele]):
                 Semblable = False
                 break
         return Semblable
@@ -45,6 +45,7 @@ class Foetus(Patient):
             return
             #foetus à un pic
         else:
+            if self.marqueur == 
             return
             #foetus à deux pics
 
