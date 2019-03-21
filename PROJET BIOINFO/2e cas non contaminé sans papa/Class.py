@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class Patient:
 
     def __init__(self,marqueur,allele,hauteur):
@@ -23,8 +24,10 @@ class Foetus(Patient):
         self.contamination = contamination
 
 class Pere(Patient):
+    
     def __init__(self,marqueur,allele,hauteur):
         super().__init__(marqueur,allele,hauteur)
+
 
 def verif_concordance(mere,foetus):
     Taille = 16
