@@ -14,15 +14,17 @@ from kivy.properties import ObjectProperty
 from kivy.uix.button import Button
 from kivy.factory import Factory
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.uix.popup import Popup
 from kivy.core.window import Window
 from kivy.uix.dropdown import DropDown
 
+import pandas as pd
 import os
 import sys
 
 kivy.require('1.10.1')
-
+Window.clearcolor = (1, 1, 1, 1)
 Window.size = (1120, 630)
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -32,13 +34,9 @@ class Root(GridLayout):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
+    
     def dismiss_popup(self):
         self._popup.dismiss()
-
-    
-        
-
-    
 
     def show_load(self):
         contenu=LoadDialog(load=self.load,cancel=self.dismiss_popup)
@@ -46,11 +44,11 @@ class Root(GridLayout):
         self._popup.open()
         
     def load(self, path, filename):
-        with open(os.path.join(path, filename[0])) as stream:
-            ICI_LE_DOCUMENT= stream.read()
-        print(ICI_LE_DOCUMENT)
-
+        donnees = pd.read_table(os.path.join(path, filename[0]),sep = '\t',header = 0)
+        self.titre = "Echantillon: " + donnees["Sample Name"][1]
+        print(donnees)
         self.dismiss_popup()
+
     def quitter(self):
        sys.exit(0)
 
