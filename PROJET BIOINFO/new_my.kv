@@ -1,0 +1,71 @@
+#:kivy 1.10.1
+
+
+Root:
+    spacing: 10
+    padding: 10
+    cols: 2
+    rows: 6
+    
+    BoxLayout:
+        spacing: 10
+        padding: 10
+        orientation: 'horizontal'
+        height: 100
+
+        Button:
+            id:bbbttn
+            text: "Fichier"
+            on_parent: dropdown.dismiss()
+            on_release: dropdown.open(self)
+
+            DropDown:    
+                id: dropdown
+
+                Button:
+                    text: 'Ouvrir'
+                    size_hint_y: None
+                    on_release: root.show_load()
+                Button:
+                    text: 'Sauvegarder'
+                    size_hint_y: None
+                Button:
+                    text: 'Quitter'
+                    size_hint_y: None
+                    on_release: root.quitter()
+
+        Button:
+            text: "bouton 2"
+        Button:
+            text: "bouton 3"
+    BoxLayout:
+    BoxLayout:
+    BoxLayout:
+    BoxLayout:
+    BoxLayout:
+    BoxLayout:
+    BoxLayout:
+
+
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            path: './'
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Annuler"
+                on_release: root.cancel()
+               
+
+            Button:
+                text: "Ouvrir"
+                on_release: root.load(filechooser.path, filechooser.selection)
+                
+
