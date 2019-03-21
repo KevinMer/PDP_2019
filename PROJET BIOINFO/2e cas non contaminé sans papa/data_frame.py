@@ -1,11 +1,15 @@
+#coding: utf8
+
 import pandas as pd
 
 df = pd.read_table("181985_xfra_ja_200618_PP16.txt",sep = '\t',header = 0)
 
-print(df)
+#print(df)
 #for val in range(df.shape[0]-1):
 #    if df["Allele 1"][val] == df["Allele 2"][val+1]:
 #        print(df["Marker"][val])
+
+
 
 def concordance(data_frame):
     if df.shape[0] > 32:
@@ -17,3 +21,6 @@ def concordance(data_frame):
     for val in range(data_frame.shape[0] - 1):
         if Allele[val] in Allele[val + 1]:
             print("Ok")
+
+for val in range(0,df.shape[0] - 1, 2):
+    print(df[["Allele 1","Allele 2","Allele 3"].values[0])
