@@ -3,6 +3,8 @@ import pandas as pd
 
 class Patient:
 
+    #Mettre attributs pour ecriture log
+
     def __init__(self,marqueur,allele,hauteur,informatif):
         self.marqueur = marqueur
         self.allele = allele
@@ -10,13 +12,52 @@ class Patient:
         self.informatif = informatif
 
     def allele_semblable(self,mere):
-        Semblable = True
+        Similarite = 0
+        Semblable = False
         for Allele in range(3):
-            if str(self.allele[Allele]) != str(mere.allele[Allele]):
-                Semblable = False
-                break
+            if str(self.allele[Allele]) in mere.allele and str(self.allele[Allele]) != 0.0:
+                Similarite = Similarite + 1
+            if Similarite == 2:
+                Semblable = True
         return Semblable
 
+
+    ## Revoir contamination homozygote
+    def verif_homozygote_contamine(self,mere,Semblable):
+        Allele_different = None
+        Allele_semblable = None
+        if Semblable == True:
+            for Allele in range(3):
+                if str(self.allele[Allele]) in mere.allele and str(self.allele[Allele]) != 0.0:
+                    Allele_semblable = Allele
+                if str(self.allele[Allele]) != str(mere.allele[Allele]):
+                    Allele_different = Allele
+                if str(self.allele[Allele]) == str(mere.allele[Allele]) and str(self.allele[Allele]) != 0.0:
+                    Allele_semblable = Allele
+            if self.hauteur[Allele_different] < 1/3 * self.hauteur[Allele_semblable]:
+                self.contamination = "contamine"
+                #contamination_homozygote(self)
+        else:
+            pass
+
+    def echo(self,foetus):
+        Echo = False
+        Allele_semblable = None
+        for Allele in range(3):
+            if str(self.allele[Allele]) in foetus.allele and str(self.allele[Allele]) != 0.0:
+                Allele_semblable = Allele
+                print(type(Allele_semblable))
+        if Allele_semblable == 0:
+            Allele_Echo = self.allele[Allele_semblable + 1]
+            for Alleles_foetus in range(3):
+                if float(foetus.allele[Alleles_foetus]) - 1 == float(Allele_Echo):
+                    Echo = True
+        else:
+            Allele_Echo = self.allele[Allele_semblable - 1]
+            for Alleles_foetus in range(3):
+                if float(foetus.allele[Alleles_foetus]) - 1 == float(Allele_Echo):
+                    Echo = True
+        return Echo
 
 class Mere(Patient):
 
@@ -45,7 +86,7 @@ class Foetus(Patient):
             return
             #foetus à un pic
         else:
-            if self.marqueur == 
+            #if self.marqueur == 
             return
             #foetus à deux pics
 
@@ -86,7 +127,8 @@ def lecture_donnees(data_frame):
     Donnees_Foetus = []
     Donnees_Pere = []
 
-    Donnees = pd.read_table(data_frame,sep = '\t',header = 0)
+    Donnees_na = pd.read_table(data_frame,sep = '\t',header = 0)
+    Donnees = Donnees_na.fillna(0)
     if (Donnees.shape[0] > 32):
         Iterateur = 3
     Allele = Donnees[["Allele 1","Allele 2", "Allele 3"]].values
@@ -102,12 +144,15 @@ def lecture_donnees(data_frame):
     return Donnees_Mere, Donnees_Foetus,Donnees_Pere
 
 
+
 if __name__ == "__main__":
-    M,F,P = lecture_donnees("181985_xfra_ja_200618_PP16.txt")
+    M,F,P = lecture_donnees("PP16_DMPK_MARTIN_061118_PP16.txt")
     verif_concordance(M,F)
-    print(M[5].allele)
-    print(F[5].allele)
-    A = M[5].allele_semblable(F[5])
-    print(A)
+    print(M[3].allele)
+    print(F[3].allele)
+    print(float(M[3].allele[1]) - 1)
+    for i in range(1,16):
+        A = F[i].allele_semblable(M[i])
+        print(A)
     #machin= Mere("truc","all1",36,True)
     #print(machin.marqueur)

@@ -1,0 +1,38 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+Class.py	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	1;"	kind:file	line:1
+LignePatient	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^class LignePatient:$/;"	kind:class	line:1
+Marqueur	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Marqueur = None$/;"	kind:variable	line:3
+Allele	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Allele = []$/;"	kind:variable	line:4
+Hauteur	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Hauteur = []$/;"	kind:variable	line:5
+Mere	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^class Mere(LignePatient):$/;"	kind:class	line:7
+Homozygote	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Homozygote = False$/;"	kind:variable	line:9
+Semblable	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Semblable = False$/;"	kind:variable	line:10
+Foetus	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^class Foetus(LignePatient):$/;"	kind:class	line:12
+Echo	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Echo = False$/;"	kind:variable	line:14
+Semblable	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^    Semblable = False$/;"	kind:variable	line:15
+Pere	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/Class.py	/^class Pere(LignePatient):$/;"	kind:class	line:17
+Patients.py	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/Patients.py	1;"	kind:file	line:1
+Patients	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/Patients.py	/^class Patients:$/;"	kind:class	line:1
+__init__	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/Patients.py	/^    def __init__(self):$/;"	kind:member	line:2
+parsing.py	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	1;"	kind:file	line:1
+Marqueur	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Marqueur = []$/;"	kind:variable	line:4
+Foetus	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Foetus = {"":{"Allele_f":{"1":None,"2":None,"3":None},"Hauteur_f":{"1":None,"2":None,"3":None}}}$/;"	kind:variable	line:6
+entree	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^entree = open("181985_xfra_ja_200618_PP16.txt","r")$/;"	kind:variable	line:8
+fichier	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^fichier = entree.readlines()$/;"	kind:variable	line:11
+Allele_m	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Allele_m = {"1":None,"2":None,"3":None}$/;"	kind:variable	line:12
+Allele_f	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Allele_f = {"1":None,"2":None,"3":None}$/;"	kind:variable	line:13
+Hauteur_m	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Hauteur_m = {"1":None,"2":None,"3":None}$/;"	kind:variable	line:14
+Hauteur_f	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Hauteur_f = {"1":None,"2":None,"3":None}$/;"	kind:variable	line:15
+Mere	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Mere = {}$/;"	kind:variable	line:16
+Foetus	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^Foetus = {}$/;"	kind:variable	line:17
+lignes	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^    lignes = fichier[l]$/;"	kind:variable	line:19
+infos	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^    infos = ("").join(lignes)$/;"	kind:variable	line:20
+valeurs	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/parsing.py	/^    valeurs = infos.split("\\t")$/;"	kind:variable	line:21
+data_frame.py	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/data_frame.py	1;"	kind:file	line:1
+df	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/data_frame.py	/^df = pd.read_table("181985_xfra_ja_200618_PP16.txt",sep = '\\t',header = 0)$/;"	kind:variable	line:3
+concordance	../../../../../../../../../autofs/unitytravail/travail/kmerchadou/S2/PDP_2019/PROJET BIOINFO/2e cas non contaminé sans papa/data_frame.py	/^def concordance(data_frame):$/;"	kind:function	line:10
