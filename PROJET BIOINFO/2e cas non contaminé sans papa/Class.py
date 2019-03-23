@@ -10,10 +10,10 @@ class Patient:
         self.allele = allele
         self.hauteur = hauteur
         self.informatif = informatif
+        self.Semblable = False
 
-    def allele_semblable(self,mere):
+    def allele_semblable(self,Semblable,mere):
         Similarite = 0
-        Semblable = False
         for Allele in range(3):
             if str(self.allele[Allele]) in mere.allele and str(self.allele[Allele]) != 0.0:
                 Similarite = Similarite + 1
@@ -21,12 +21,12 @@ class Patient:
                 Semblable = True
         return Semblable
 
-
+    
     ## Revoir contamination homozygote
-    def verif_homozygote_contamine(self,mere,Semblable):
+    def homozygote_contamine(self,mere,no_marqueur):
         Allele_different = None
         Allele_semblable = None
-        if Semblable == True:
+        if self.Semblable == True:
             for Allele in range(3):
                 if str(self.allele[Allele]) in mere.allele and str(self.allele[Allele]) != 0.0:
                     Allele_semblable = Allele
@@ -34,6 +34,9 @@ class Patient:
                     Allele_different = Allele
                 if str(self.allele[Allele]) == str(mere.allele[Allele]) and str(self.allele[Allele]) != 0.0:
                     Allele_semblable = Allele
+
+                print("semblable:",Allele_semblable)
+                print("different:",Allele_different)
             if self.hauteur[Allele_different] < 1/3 * self.hauteur[Allele_semblable]:
                 self.contamination = "contamine"
                 #contamination_homozygote(self)
@@ -42,11 +45,10 @@ class Patient:
 
     def echo(self,foetus):
         Echo = False
-        Allele_semblable = None
+        Allele_semblable = 0
         for Allele in range(3):
             if str(self.allele[Allele]) in foetus.allele and str(self.allele[Allele]) != 0.0:
                 Allele_semblable = Allele
-                print(type(Allele_semblable))
         if Allele_semblable == 0:
             Allele_Echo = self.allele[Allele_semblable + 1]
             for Alleles_foetus in range(3):
@@ -78,18 +80,6 @@ class Foetus(Patient):
         self.semblable = semblable
         self.contamination = contamination
     
-    def foetus_3_pics(self):
-        if "nan" not in str(self.allele):
-            self.contamination = "contamine"
-            #contamination_heterozygote(self)
-        elif "nan" in str(self.allele[1]):
-            return
-            #foetus à un pic
-        else:
-            #if self.marqueur == 
-            return
-            #foetus à deux pics
-
 
 
 
@@ -110,6 +100,7 @@ def verif_concordance(mere,foetus):
                 #Garder en memoire a quelle ligne ce n'est pas concordant
     ecriture_log(Concordance)
     return Concordance
+
 
 def ecriture_log(concordance):
     Log = open("Log.txt","w")
@@ -148,11 +139,15 @@ def lecture_donnees(data_frame):
 if __name__ == "__main__":
     M,F,P = lecture_donnees("PP16_DMPK_MARTIN_061118_PP16.txt")
     verif_concordance(M,F)
-    print(M[3].allele)
+    print(type(M[0].allele))
+    print(M[1].allele[0])
     print(F[3].allele)
+    print(F[0].allele)
     print(float(M[3].allele[1]) - 1)
     for i in range(1,16):
         A = F[i].allele_semblable(M[i])
         print(A)
+        
+
     #machin= Mere("truc","all1",36,True)
     #print(machin.marqueur)
