@@ -1,4 +1,21 @@
 DPN3000
 jeudi 21 Mars
 Version 1.0
-Concordance OK
+EchantillonConcordance OK
+Le marqueur AMEL est NON INFORMATIF car dans l'écho
+Le marqueur CSF1PO est NON CONTAMINE
+Le marqueur D13S317 est NON CONTAMINE
+Le marqueur D16S539 est NON INFORMATIF car dans l'écho
+Le marqueur D18S51 est NON CONTAMINE
+Le marqueur D21S11 est NON CONTAMINE
+Le marqueur D3S1358 est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.
+Le marqueur D5S818 est NON INFORMATIF car la mère est homozygote.
+Le marqueur D7S820 est NON INFORMATIF car dans l'écho
+Le marqueur D8S1179 est NON INFORMATIF car la mère est homozygote.
+Le marqueur FGA est NON CONTAMINE
+Le marqueur Penta_D est NON CONTAMINE
+Le marqueur Penta_E est HTZ CONTAMINE à hauteur de 1.9146748907735802 %
+Le marqueur TH01 est NON CONTAMINE
+Le marqueur TPOX est NON CONTAMINE
+Le marqueur vWA est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.
+Processus achevé.
