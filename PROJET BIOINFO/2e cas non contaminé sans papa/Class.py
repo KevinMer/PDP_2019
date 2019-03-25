@@ -4,24 +4,33 @@ import numpy as np
 
 class Patient:
 
-    # Mettre attributs pour ecriture log
-
     def __init__(self, marqueur, allele, hauteur, informatif):
         self.marqueur = marqueur
         self.allele = allele
         self.hauteur = hauteur
         self.informatif = informatif
-        self.Semblable = False
 
-    def allele_semblable(self, mere):
-        # /!\ ne pas passer la première ligne
+    def allele_semblable(self, mere): 
+        #Entree : une ligne du foetus, la ligne mère correspondante
+        #Détermine si les allèles sont les mêmes
+        #Si c'est le cas, l'attribut informatif de la ligne foetus se voit attribuer la valeur 2
         Similarite = 0
         for Allele in range(3):
             if self.allele[Allele] in mere.allele and self.allele[Allele] != 0.0:
                 Similarite = Similarite + 1
         if Similarite == 2:
             self.informatif = 2
-        return Semblable
+
+#CODE Informatif:
+# 0 Mere HMZ
+# 1 Informatif
+# 2 Memes Alleles
+# 3 Echo
+
+#CODE Contamine:
+# 0 Pas conta
+# 1 HMZ Conta
+# 2 HTZ Conta
 
     # Revoir contamination homozygote
     def verif_homozygote_contamine(self, mere, Semblable):
@@ -45,7 +54,9 @@ class Patient:
             pass
 
     def echo(self, foetus):
-        Echo = False
+        #Entree : une ligne de la mère, la ligne foetus correspondante
+        #Détermine si il y a écho
+        # Si oui, l'attribut "informatif" de la ligne foetus se voit attribuer la valeur 3
         Allele_semblable = 0
         for Allele in range(3):
             if self.allele[Allele] in foetus.allele and self.allele[Allele] != 0.0:
@@ -60,7 +71,6 @@ class Patient:
             for Alleles_foetus in range(3):
                 if foetus.allele[Alleles_foetus] - 1 == Allele_Echo:
                     foetus.informatif = 3
-        return Echo
 
 
 class Mere(Patient):
@@ -70,23 +80,24 @@ class Mere(Patient):
         self.homozygote = homozygote
 
     def homozygotie(self):
-        reponse = False
+        #Entree : une ligne mère
+        #Détermine si pour cette ligne la mère est homozygote
+        #Si oui, l'attribut homozygote de la ligne mère se voit attribuer la valeur true
         if self.allele[1] == 0.0:
             self.homozygote = True
-            reponse = True
-        return reponse
 
 
 class Foetus(Patient):
 
-    def __init__(self, marqueur, allele, hauteur, informatif, echo, semblable, contamination,taux):
+    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux):
         super().__init__(marqueur, allele, hauteur, informatif)
-        self.echo = echo
-        self.semblable = semblable
         self.contamination = contamination
         self.taux = taux
 
     def foetus_pics(self):
+        #Entree : une ligne du foetus
+        #Détermine le nombre de pics pour cette ligne
+        #Retourne le nombre de pic
         pic = 0
         if 0.0 not in self.allele:
             self.contamination = 2
@@ -102,6 +113,9 @@ class Foetus(Patient):
         return pic
 
     def contamination_heterozygote(self,mere):
+        #Entree : une ligne du foetus, la ligne mère correspondante
+        #Calcul le pourcentage de contamination hétérozygote
+        #L'attribut taux de la ligne foetus se voit attribuer le pourcentage correspondant
         hauteur_allele_contaminant = 99999999999999999.0
         hauteur_allele_different = None
         taux_contamination = 0
@@ -123,6 +137,9 @@ class Pere(Patient):
 
 
 def ecriture_log(concordance,liste_F):
+    #Entree : le resultat de la concordance, une liste contenant toutes les lignes du foetus
+    #Ecrit dans un fichier texte la conclusion pour chaque marqueur respectif
+    #Ne renvoie rien
     Log = open("Log.txt", "w")
     Log.write("DPN3000\njeudi 21 Mars\nVersion 1.0\nEchantillon")
     if concordance == 16:
@@ -170,6 +187,9 @@ def ecriture_log(concordance,liste_F):
 
 
 def lecture_fichier(path_data_frame):
+    #Entree : le fichier que l'on souhaite ouvrir
+    #Lis le data frame et appelle les constructeurs correspondants pour chaque ligne (foetus,mère,père). Les instances sont stockées dans des listes distinces.
+    #Retourne la listes des instances pour les lignes mère, foetus et père.
     # Differentier csv, txt -> regex
     Iterateur = 2
     Donnees_Mere = []
@@ -186,7 +206,7 @@ def lecture_fichier(path_data_frame):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                  Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, None, None,None)
+                   Hauteur[ligne + 1], None, None, None)
         if (Iterateur == 3):
             P = Patient(Donnees["Marker"][ligne],
                         Allele[ligne + 2], Hauteur[ligne + 2], None)
@@ -196,12 +216,10 @@ def lecture_fichier(path_data_frame):
     return Donnees_Mere, Donnees_Foetus, Donnees_Pere
 
 
-def homogeneite_type(list_allele: list, list_hauteur: list) -> tuple:
-    """
-    docstring here
-        :param list_allele:
-        :param list_hauteur:
-    """
+def homogeneite_type(list_allele, list_hauteur):
+    #Entree : liste de tout les allèles du fichier, liste de toutes les hauteurs du fichier
+    #Transforme toutes les valeurs, exceptées celles des deux premières lignes en float.
+    #Retourne les listes d'allèles et de hauteurs nouvellement modifiées en float.
     Allele = []
     Hauteur = []
     Allele.append(list_allele[0])
@@ -219,6 +237,9 @@ def homogeneite_type(list_allele: list, list_hauteur: list) -> tuple:
     return Allele, Hauteur
 
 def verif_concordance(mere, foetus):
+    #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
+    #Vérifie pour chaque position de la liste si un allèle est en commmun entre les deux listes. La concordance est incrémentée de 1 si c'est le cas.
+    #Retourne la concordance.
         Taille = 16
         concordance = 0
         for Alleles in range(Taille):
@@ -229,56 +250,10 @@ def verif_concordance(mere, foetus):
                     # Garder en memoire a quelle ligne ce n'est pas concordant
         return concordance
 
+
 def traitement_donnees(mere,foetus):
-    concordance = verif_concordance(mere,foetus)
-    if concordance != 16:
-        return
-        #echantillon non conforme
-    else:
-        for nbre_lignes in range(len(foetus)):
-            nbre_pics = foetus[nbre_lignes].foetus_pics()
-            if nbre_pics == 3:
-                foetus[nbre_lignes].informatif = 1
-                print("Le marqueur ",foetus[nbre_lignes].marqueur," est", foetus[nbre_lignes].contamination)
-                foetus[nbre_lignes].contamination_heterozygote(mere[nbre_lignes])
-                print("Le taux de contamination est",foetus[nbre_lignes].informatif,"taux =",foetus[nbre_lignes].contamination," %")
-                print("\n")
-            elif nbre_pics != 3:
-                mere[nbre_lignes].homozygotie()
-                if mere[nbre_lignes].homozygote:
-                    mere[nbre_lignes].informatif = 0
-                    foetus[nbre_lignes].informatif = 0
-                    print("Le marqueur ", mere[nbre_lignes].marqueur, " est", mere[nbre_lignes].informatif)
-                    print("\n")
-                elif nbre_pics == 2:
-                    foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
-                    if foetus[nbre_lignes].informatif == 2:
-                        print("Allele Semblable")
-                        print("Contamination homozygote à paramétrer")
-                        print("\n")
-                    mere[nbre_lignes].echo(foetus[nbre_lignes])
-                    if foetus[nbre_lignes].informatif == 3:
-                        mere[nbre_lignes].informatif = 3
-                        print("Le marqueur ", mere[nbre_lignes].marqueur, " est", mere[nbre_lignes].informatif)
-                        print("\n")
-                    mere[nbre_lignes].informatif = 1
-                    foetus[nbre_lignes].informatif = 1
-                    print("Le marqueur ", mere[nbre_lignes].marqueur, " est", mere[nbre_lignes].informatif)
-                    print("\n")
-                    if nbre_pics == 1:
-                        mere[nbre_lignes].echo(foetus[nbre_lignes])
-                        if foetus[nbre_lignes].informatif == 3:
-                            mere[nbre_lignes].informatif = 3
-                            print("Le marqueur ", mere[nbre_lignes].marqueur, " est", mere[nbre_lignes].informatif)
-                            print("\n")
-                        mere[nbre_lignes].informatif = 1
-                        foetus[nbre_lignes].informatif = 1
-                        print("Le marqueur ", mere[nbre_lignes].marqueur, " est", mere[nbre_lignes].informatif)
-                        print("\n")
-    ecriture_log(concordance,foetus)
-#11 12
-#8 12
-def traitement_donnees_2(mere,foetus):
+    #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
+    #Chaine de traitement des informations permettant de mettre en place une conclusion.
     concordance = verif_concordance(mere,foetus)
     if concordance != 16:
         return
@@ -309,13 +284,13 @@ def traitement_donnees_2(mere,foetus):
     ecriture_log(concordance,foetus)
         
 
-#CODE Infor:
+#CODE Informatif:
 # 0 Mere HMZ
 # 1 Informatif
 # 2 Memes Alleles
 # 3 Echo
 
-#CODE CONTA:
+#CODE Contamine:
 # 0 Pas conta
 # 1 HMZ Conta
 # 2 HTZ Conta
@@ -324,6 +299,5 @@ def traitement_donnees_2(mere,foetus):
 
 
 if __name__ == "__main__":
-    #/!\ penser à mettre contamination pour mère
     M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    traitement_donnees_2(M,F)
+    traitement_donnees(M,F)
