@@ -209,6 +209,9 @@ def resultat(concordance,liste_F,echantillon):
 
 
 def lecture_fichier(path_data_frame):
+    log = "#### DPNMaker 1.0..............\n### Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou\n#### Date : 1 avril 2019\n\n"
+    log = log + "Ouverture du fichier.......................................\n"
+    log = log + "Chargement des données.......................................\n"
     #Entree : le fichier que l'on souhaite ouvrir
     #Lis le data frame et appelle les constructeurs correspondants pour chaque ligne (foetus,mère,père). Les instances sont stockées dans des listes distinces.
     #Retourne la listes des instances pour les lignes mère, foetus et père.
@@ -223,7 +226,7 @@ def lecture_fichier(path_data_frame):
         Iterateur = 3
     Allele_na = Donnees[["Allele 1", "Allele 2", "Allele 3"]].values
     Hauteur_na = Donnees[["Height 1", "Height 2", "Height 3"]].values
-    Allele, Hauteur = homogeneite_type(Allele_na, Hauteur_na)
+    Allele, Hauteur, log = homogeneite_type(Allele_na, Hauteur_na,log)
     for ligne in range(0, Donnees.shape[0] - 1, Iterateur):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                  Hauteur[ligne], None, None)
@@ -236,10 +239,12 @@ def lecture_fichier(path_data_frame):
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
     Echantillon_F = Echantillon(F,2,0.05,None)
-    return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F
+    log = log + "Donnees chargees.......................................\n"
+    return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F, log
 
 
-def homogeneite_type(list_allele, list_hauteur):
+def homogeneite_type(list_allele, list_hauteur, log):
+    log = log + "Normalisation des données..........................\n"
     #Entree : liste de tout les allèles du fichier, liste de toutes les hauteurs du fichier
     #Transforme toutes les valeurs, exceptées celles des deux premières lignes en float.
     #Retourne les listes d'allèles et de hauteurs nouvellement modifiées en float.
@@ -262,61 +267,115 @@ def homogeneite_type(list_allele, list_hauteur):
             Ht.append(float(list_hauteur[i][j]))
         Allele.append(Al)
         Hauteur.append(Ht)
-    return Allele, Hauteur
+    log = log + "Normalisation effectuée..............................\n"
+    return Allele, Hauteur, log
 
-def verif_concordance(mere, foetus):
+def verif_concordance(mere, foetus, log):
     #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
     #Vérifie pour chaque position de la liste si un allèle est en commmun entre les deux listes. La concordance est incrémentée de 1 si c'est le cas.
     #Retourne la concordance.
         Taille = 16
         concordance = 0
+        log = log + "Vérification concordance des ADNs..............................\n"
         for Alleles in range(Taille):
             for Allele_Foe in range(3):
                 if foetus[Alleles].allele[Allele_Foe] in mere[Alleles].allele:
                     concordance = concordance + 1
+                    log = log + "Concordance pour marqueur " + str(foetus[Alleles].marqueur) + " OK..................\n"
                     break
+                #else:
+                 #   log = log + "Concordance pour maruqeur " + str(foetus[Alleles].marqueur) + "PAS OK..............\n"
+                    
                     # Garder en memoire a quelle ligne ce n'est pas concordant
-        return concordance
+        log = log + "Vérification concordance des ADns terminée..................................\n"
+        return concordance, log
 
 
-def traitement_donnees(mere,foetus,echantillon):
+def traitement_donnees(mere,foetus,echantillon,log):
     #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
     #Chaine de traitement des informations permettant de mettre en place une conclusion.
-    concordance = verif_concordance(mere,foetus)
+    concordance, log = verif_concordance(mere,foetus,log)
     if concordance != 16:
+        log = log + "Concordance des ADNs PAS OK....................\n"
+        log = log + "Erreur dans l'échantillon...................\n"
+        log = log = "Revérifier s'il vous plaît.............\n"
         return
     else:
+        log = log + "Vérification si foetus à deux allèles pour marqueur AMEL..............\n"
         if foetus[0].allele[1] == 0.0:
+            log = log + "Foetus n'a qu'un seul allèle pour marqueur AMEL, sexe féminin..........\n"
             foetus[0].sexe = "F"
+        else:
+            log = log + "Foetus a deux allèles pour marqueur AMEL, sexe masculin..........\n"
+        log = log + "Traitement des 15 autres marqueurs..............................\n"
         for nbre_lignes in range(1,len(mere)):
+            log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + "..............\n"
             pic = foetus[nbre_lignes].foetus_pics()
+            log = log + "Calcul du nombre d'allèles pour le foetus......................\n"
+            log = log + "Nombre d'allèles pour le foetus : " + str(pic) + ".........\n"
+            log = log + "Vérification de l'homozygotie de la mère......................\n"
             mere[nbre_lignes].homozygotie()
+            log = log + "Mère homozygote : " + str(mere[nbre_lignes].homozygote) + "...............\n"
+            log = log + "Vérification mère et foetus mêmes allèles......................\n"
             foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
+            log = log + "Code de retour vérification allèles semblables: " + str(foetus[nbre_lignes].informatif) + "...............\n"
+            log = log + "Initialisation du taux de contamination pour calcul à venir...............\n"
             foetus[nbre_lignes].taux = 0.0
+            log = log + "Taux initialisé.................................\n"
+            log = log + "Si code informatif de retour allèles semblables différent de 2, vérification écho.............\n"
+            log = log + "Si écho, affection code informatif 3...............\n"
             if foetus[nbre_lignes].informatif != 2:
+                log = log + "Vérification si écho......................\n"
                 mere[nbre_lignes].echo(foetus[nbre_lignes])
+                log = log + "Code retour vérification écho : " + str(foetus[nbre_lignes].informatif) + "...............\n"
+            log = log + "Début chaîne de traitement...........................\n"
             if pic == 3:
+                log = log + "Trois allèles détectés......................\n"
                 foetus[nbre_lignes].contamination_heterozygote(mere[nbre_lignes])
+                log = log + "Marqueur informatif, affectation du code contamination 1..............\n"
                 foetus[nbre_lignes].informatif = 1
+                log = log + "Calcul taux de contamination du marqueur..........\n"
                 foetus[nbre_lignes].contamination = 2
+                log = log + "Calcul terminé....................\n"
             elif mere[nbre_lignes].homozygote:
+                log = log + "Mère homozygote.......................\n"
+                log = log + "Marqueur non informatif, affectation du code informatif 0............\n"
                 foetus[nbre_lignes].informatif = 0
             elif pic == 2:
+                log = log + "Deux allèles détectés..............\n"
                 if foetus[nbre_lignes].informatif == 2:
+                    log = log + "Si mêmes allèles, vérification homozygote contaminé...............\n"
                     foetus[nbre_lignes].verif_homozygote_contamine()
                     if foetus[nbre_lignes].contamination == 1:
+                        log = log + "Homozygote contaminé identifié.....................\n"
+                        log = log + "Calcul du taux de contamination....................\n"
                         foetus[nbre_lignes].homozygote_contamine()
+                        log = log + "Calcul du taux de contamination effectué...........\n"
                 else:
                     if foetus[nbre_lignes].informatif != 3:
+                        log = log + "Code calcul écho différent de 3..................\n"
+                        log = log + "Marqueur informatif, affectation du code informatif 1.............\n"
                         foetus[nbre_lignes].informatif = 1
+                        log = log + "Marqueur non contaminé, affectation du code contamination 0................\n"
                         foetus[nbre_lignes].contamination = 0
             else:
+                log = log + "Un seul allèle détecté............\n"
                 if foetus[nbre_lignes].informatif != 3:
+                    log = log + "Code informatif différent de 3...........\n"
+                    log = log + "Marqueur informatif, affectation du code informatif 1.............\n"
                     foetus[nbre_lignes].informatif = 1
+                    log = log + "Marqueur non contaminé, affectation du code contamination 0................\n"
                     foetus[nbre_lignes].contamination = 0
+            log = log + "\n\n"
+            log = log + "Traitement nouveau marqueur\n\n"
+    log = log + "Calcul échantillon contaminé ou non......"
+    log = log + "Marqueur contaminé si >" + str(echantillon.seuil_taux_conta) + ".......\n"
+    log = log + "Echantillon contaminé si plus de " + str(echantillon.seuil_nbre_marqueurs) + "marqueurs contaminés...\n"
     echantillon.conclusion_echantillon(foetus)
+    log = log + "Calcul échantillon terminé.....\n"
+    log = log + "Fin de traitement...........\n"
     concl = resultat(concordance,foetus,echantillon)
-    return concl
+    return concl,log
         
 
 #CODE Informatif:
@@ -335,6 +394,6 @@ def traitement_donnees(mere,foetus,echantillon):
 
 if __name__ == "__main__":
     #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    M, F, P, Echantillon_F = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
-    concl = traitement_donnees(M,F,Echantillon_F)
-    print(concl)
+    M, F, P, Echantillon_F, log = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
+    concl,log = traitement_donnees(M,F,Echantillon_F,log)
+    print(log)
