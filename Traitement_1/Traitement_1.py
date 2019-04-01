@@ -2,6 +2,24 @@ import pandas as pd
 import numpy as np
 
 
+class Echantillon:
+
+    def __init__(self,liste_lignes,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,conclusion = None):
+        self.liste_lignes = liste_lignes
+        self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
+        self.seuil_taux_conta = seuil_taux_conta
+        self.conclusion = conclusion
+
+    def conclusion_echantillon(self,liste_foetus):
+        compteur = 0
+        for lignes in range(1,len(liste_foetus)):
+            if liste_foetus[lignes].contamination != 0 and liste_foetus[lignes].taux > self.seuil_taux_conta:
+                compteur = compteur + 1
+        if compteur > self.seuil_nbre_marqueurs:
+            self.conclusion = 0
+        else:
+            self.conclusion = 1
+
 class Patient:
 
     def __init__(self, marqueur, allele, hauteur, informatif):
@@ -20,7 +38,7 @@ class Patient:
                 Similarite = Similarite + 1
         if Similarite == 2:
             self.informatif = 2
-
+        
 #CODE Informatif:
 # 0 Mere HMZ
 # 1 Informatif
@@ -32,26 +50,11 @@ class Patient:
 # 1 HMZ Conta
 # 2 HTZ Conta
 
-    # Revoir contamination homozygote
-    def verif_homozygote_contamine(self, mere, Semblable):
-        Allele_different = None
-        Allele_semblable = None
-        if self.Semblable == True:
-            for Allele in range(3):
-                if self.allele[Allele] in mere.allele and self.allele[Allele] != "0":
-                    Allele_semblable = Allele
-                if self.allele[Allele] != mere.allele[Allele]:
-                    Allele_different = Allele
-                if self.allele[Allele] == mere.allele[Allele] and self.allele[Allele] != "0":
-                    Allele_semblable = Allele
+#CODE Conclusion:
 
-                print("semblable:",Allele_semblable)
-                print("different:",Allele_different)
-            if self.hauteur[Allele_different] < 1/3 * self.hauteur[Allele_semblable]:
-                self.contamination = "contamine"
-                # contamination_homozygote(self)
-        else:
-            pass
+#0 : contamine
+#1 : non contamine
+
 
     def echo(self, foetus):
         #Entree : une ligne de la mère, la ligne foetus correspondante
@@ -89,10 +92,11 @@ class Mere(Patient):
 
 class Foetus(Patient):
 
-    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux):
+    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux,sexe):
         super().__init__(marqueur, allele, hauteur, informatif)
         self.contamination = contamination
         self.taux = taux
+        self.sexe = sexe
 
     def foetus_pics(self):
         #Entree : une ligne du foetus
@@ -120,14 +124,32 @@ class Foetus(Patient):
         hauteur_allele_different = None
         taux_contamination = 0
         for allele in range(3):
-            if self.allele[allele] < hauteur_allele_contaminant:
+            if self.hauteur[allele] < hauteur_allele_contaminant:
                 hauteur_allele_contaminant = self.hauteur[allele]
         for alleles in range(3):
             if self.allele[alleles] not in mere.allele:
                 hauteur_allele_different = self.hauteur[alleles]
         taux_contamination = ((hauteur_allele_contaminant) / (hauteur_allele_different + hauteur_allele_contaminant)) * 100
-        self.taux = taux_contamination
-        
+        self.taux = round(taux_contamination,2)
+
+    def verif_homozygote_contamine(self):
+        seuil = 1/3
+        if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
+            self.contamination = 1
+            self.informatif = 1
+        else:
+            self.taux = 0.0
+
+    def homozygote_contamine(self):
+        seuil = 1/3
+        if self.hauteur[1] < self.hauteur[0] * seuil:
+            allele_contaminant = 1
+            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
+        else:
+            allele_contaminant = 0
+            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
+        self.taux = round(taux,2)
+    
 
 
 class Pere(Patient):
@@ -136,39 +158,39 @@ class Pere(Patient):
         super().__init__(marqueur, allele, hauteur,informatif)
 
 
-def ecriture_log(concordance,liste_F):
+def resultat(concordance,liste_F,echantillon):
     #Entree : le resultat de la concordance, une liste contenant toutes les lignes du foetus
     #Ecrit dans un fichier texte la conclusion pour chaque marqueur respectif
     #Ne renvoie rien
-    Log = open("Log.txt", "w")
-    Log.write("DPN3000\njeudi 21 Mars\nVersion 1.0\nEchantillon")
+    affichage = ""
     if concordance == 16:
-        Log.write("Concordance OK\n")
+        affichage = affichage + "Concordance OK\n"
     else:
-        Log.write("Concordance PAS OK")
-        Log.close()
-    for nbres in range(len(liste_F)):
+        affichage = affichage + "Concordance PAS OK\n"
+        return affichage
+    if liste_F[0].sexe == "F":
+        affichage = affichage + "Le foetus est de sexe féminin\n"
+    else:
+        affichage = affichage + "Le foetus est de sexe masculin\n"
+    for nbres in range(1,len(liste_F)):
         if F[nbres].informatif == 0:
-            Log.write("Le marqueur {} est NON INFORMATIF car la mère est homozygote.".format(F[nbres].marqueur))
-            Log.write("\n")
+            affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est NON INFORMATIF car la mère est homozygote\n"
         elif F[nbres].informatif == 1:
             if F[nbres].contamination == 0:
-                Log.write("Le marqueur {} est NON CONTAMINE".format(F[nbres].marqueur))
-                Log.write("\n")
+                affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est NON CONTAMINE\n"
             elif F[nbres].contamination == 1:
-                Log.write("Le marqueur {} est HMZ CONTAMINE".format(F[nbres].marqueur))
-                Log.write("\n")
+                affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est HMZ CONTAMINE à hauteur de " + str(F[nbres].taux) + "%\n"
             else:
-                Log.write("Le marqueur {} est HTZ CONTAMINE à hauteur de {} %".format(F[nbres].marqueur,F[nbres].taux))
-                Log.write("\n")
+                affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est HTZ CONTAMINE à hauteur de " + str(F[nbres].taux) + "%\n"
         elif F[nbres].informatif == 2:
-            Log.write("Le marqueur {} est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.".format(F[nbres].marqueur))
-            Log.write("\n")
+            affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.\n"
         else:
-            Log.write("Le marqueur {} est NON INFORMATIF car dans l'écho".format(F[nbres].marqueur))
-            Log.write("\n")
-    Log.write("Processus achevé.")
-    Log.close()
+            affichage = affichage + "Le marqueur " + str(F[nbres].marqueur) + " est NON INFORMATIF car dans l'écho\n"
+    if echantillon.conclusion == 0:
+        affichage = affichage + "L'échantillon est contaminé\n"
+    else:
+        affichage = affichage + "L'échantillon n'est pas contaminé\n"
+    return affichage
 #CODE Infor:
 # 0 Mere HMZ
 # 1 Informatif
@@ -195,7 +217,7 @@ def lecture_fichier(path_data_frame):
     Donnees_Mere = []
     Donnees_Foetus = []
     Donnees_Pere = []
-    Donnees_na = pd.read_table(path_data_frame, sep='\t', header=0)
+    Donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
     Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
     if (Donnees.shape[0] > 32):
         Iterateur = 3
@@ -206,27 +228,33 @@ def lecture_fichier(path_data_frame):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                  Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, None)
+                   Hauteur[ligne + 1], None, None, None,None)
         if (Iterateur == 3):
             P = Patient(Donnees["Marker"][ligne],
                         Allele[ligne + 2], Hauteur[ligne + 2], None)
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
-    return Donnees_Mere, Donnees_Foetus, Donnees_Pere
+    Echantillon_F = Echantillon(F,2,0.05,None)
+    return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F
 
 
 def homogeneite_type(list_allele, list_hauteur):
     #Entree : liste de tout les allèles du fichier, liste de toutes les hauteurs du fichier
     #Transforme toutes les valeurs, exceptées celles des deux premières lignes en float.
     #Retourne les listes d'allèles et de hauteurs nouvellement modifiées en float.
+    iteration = 2
     Allele = []
     Hauteur = []
     Allele.append(list_allele[0])
     Allele.append(list_allele[1])
     Hauteur.append(list_hauteur[0])
     Hauteur.append(list_hauteur[1])
-    for i in range(2, len(list_allele)):
+    if len(list_allele) > 32:
+        iteration = 3
+        Allele.append(list_allele[2])
+        Hauteur.append(list_hauteur[2])
+    for i in range(iteration, len(list_allele)):
         Al = []
         Ht = []
         for j in range(3):
@@ -251,17 +279,20 @@ def verif_concordance(mere, foetus):
         return concordance
 
 
-def traitement_donnees(mere,foetus):
+def traitement_donnees(mere,foetus,echantillon):
     #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
     #Chaine de traitement des informations permettant de mettre en place une conclusion.
     concordance = verif_concordance(mere,foetus)
     if concordance != 16:
         return
     else:
+        if foetus[0].allele[1] == 0.0:
+            foetus[0].sexe = "F"
         for nbre_lignes in range(1,len(mere)):
             pic = foetus[nbre_lignes].foetus_pics()
             mere[nbre_lignes].homozygotie()
             foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
+            foetus[nbre_lignes].taux = 0.0
             if foetus[nbre_lignes].informatif != 2:
                 mere[nbre_lignes].echo(foetus[nbre_lignes])
             if pic == 3:
@@ -272,7 +303,9 @@ def traitement_donnees(mere,foetus):
                 foetus[nbre_lignes].informatif = 0
             elif pic == 2:
                 if foetus[nbre_lignes].informatif == 2:
-                    print("Contamination HMZ à faire")
+                    foetus[nbre_lignes].verif_homozygote_contamine()
+                    if foetus[nbre_lignes].contamination == 1:
+                        foetus[nbre_lignes].homozygote_contamine()
                 else:
                     if foetus[nbre_lignes].informatif != 3:
                         foetus[nbre_lignes].informatif = 1
@@ -281,7 +314,9 @@ def traitement_donnees(mere,foetus):
                 if foetus[nbre_lignes].informatif != 3:
                     foetus[nbre_lignes].informatif = 1
                     foetus[nbre_lignes].contamination = 0
-    ecriture_log(concordance,foetus)
+    echantillon.conclusion_echantillon(foetus)
+    concl = resultat(concordance,foetus,echantillon)
+    return concl
         
 
 #CODE Informatif:
@@ -299,5 +334,7 @@ def traitement_donnees(mere,foetus):
 
 
 if __name__ == "__main__":
-    M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    traitement_donnees(M,F)
+    #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
+    M, F, P, Echantillon_F = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
+    concl = traitement_donnees(M,F,Echantillon_F)
+    print(concl)
