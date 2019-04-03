@@ -276,30 +276,35 @@ def verif_concordance(mere, foetus, log):
     #Retourne la concordance.
         Taille = 16
         concordance = 0
+        liste_non_concordant = []
         log = log + "Vérification concordance des ADNs..............................\n"
         for Alleles in range(Taille):
             for Allele_Foe in range(3):
                 if foetus[Alleles].allele[Allele_Foe] in mere[Alleles].allele:
-                    concordance = concordance + 1
-                    log = log + "Concordance pour marqueur " + str(foetus[Alleles].marqueur) + " OK..................\n"
-                    break
-                #else:
-                 #   log = log + "Concordance pour maruqeur " + str(foetus[Alleles].marqueur) + "PAS OK..............\n"
-                    
-                    # Garder en memoire a quelle ligne ce n'est pas concordant
+                    if foetus[Alleles].allele[Allele_Foe] != 0.0:
+                        concordance = concordance + 1
+                        log = log + "Concordance pour marqueur " + str(foetus[Alleles].marqueur) + " OK..................\n"
+                        break
+                    else:
+                        liste_non_concordant.append(foetus[Alleles].marqueur)
+                        log = log + "Concordance pour marqueur " + foetus[Alleles].marqueur + " PAS OK..............\n"
+                        break
         log = log + "Vérification concordance des ADns terminée..................................\n"
-        return concordance, log
+        return concordance, log, liste_non_concordant
 
 
 def traitement_donnees(mere,foetus,echantillon,log):
     #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
     #Chaine de traitement des informations permettant de mettre en place une conclusion.
-    concordance, log = verif_concordance(mere,foetus,log)
+    concordance, log, liste_non_concordant = verif_concordance(mere,foetus,log)
     if concordance != 16:
         log = log + "Concordance des ADNs PAS OK....................\n"
         log = log + "Erreur dans l'échantillon...................\n"
-        log = log = "Revérifier s'il vous plaît.............\n"
-        return
+        log = log + "Revérifier s'il vous plaît.............\n"
+        for marqueurs in range(len(liste_non_concordant)):
+            concl = "Pas de concordance pour " + str(liste_non_concordant[marqueurs]) + "\n"
+        concl = concl + "Echantillon non concordant\n"
+        return concl,log
     else:
         log = log + "Vérification si foetus à deux allèles pour marqueur AMEL..............\n"
         if foetus[0].allele[1] == 0.0:
@@ -309,7 +314,7 @@ def traitement_donnees(mere,foetus,echantillon,log):
             log = log + "Foetus a deux allèles pour marqueur AMEL, sexe masculin..........\n"
         log = log + "Traitement des 15 autres marqueurs..............................\n"
         for nbre_lignes in range(1,len(mere)):
-            log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + "..............\n"
+            log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + ".........."
             pic = foetus[nbre_lignes].foetus_pics()
             log = log + "Calcul du nombre d'allèles pour le foetus......................\n"
             log = log + "Nombre d'allèles pour le foetus : " + str(pic) + ".........\n"
@@ -394,6 +399,6 @@ def traitement_donnees(mere,foetus,echantillon,log):
 
 if __name__ == "__main__":
     #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    M, F, P, Echantillon_F, log = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("181836_xfra jb_200618_PP16.txt")
     concl,log = traitement_donnees(M,F,Echantillon_F,log)
-    print(log)
+    print(concl)
