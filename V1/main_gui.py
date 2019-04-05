@@ -86,6 +86,21 @@ class EcranFctMethod(GridLayout):
         #print(donnees)
 
         M, F, P, Echantillon_F = Traitement_1.lecture_fichier(os.path.join(path, filename[0]))
+        """ Ici tu recuperes les donnees. Pour que tu puisses accéder aux seuils, j'ai mis des getters sur la classe Echantillon
+        De bases les valeurs sont respectivements : 1/3, 0.05, 2
+        Voila pour les récupérer du coup :
+
+        seuil_hauteur = Echantillon_F.get_seuil_hauteur()
+        seuil_taux_conta = Echantillon_F.get_seuil_taux_conta()
+        seuil_nbre_marqueurs = Echantillon_F.get_seuil_nbre_marqueurs()"""
+
+        """ Maintenant concernant le fait que les biologistes puissent changer les seuils, j'ai ajoute des setters sur la classe Echantillon egalement.
+        Il est important que tu mettes en place les nouvelles valeurs ici avant de faire passer le tout dans "traitement_donnees". Sinon tes modifs n'auront pas lieu.
+        Voilà les lignes de code :
+
+        nv_seuil_hauteur = Echantillon_F.set_seuil_hauteur(hauteur)
+        nv_taux_conta = Echantillon_F.set_seuil_taux_conta(conta)
+        nv_nbre_marqueurs = Echantillon_F.set_seuil_nbre_marqueurs(nb)"""
         print(os.path.join(path, filename[0]))
 
         self.dismiss_popup()

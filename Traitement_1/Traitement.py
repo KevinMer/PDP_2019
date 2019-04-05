@@ -4,11 +4,12 @@ import numpy as np
 
 class Echantillon:
 
-    def __init__(self,liste_lignes,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,conclusion = None):
+    def __init__(self,liste_lignes,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
         self.liste_lignes = liste_lignes
         self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
         self.seuil_taux_conta = seuil_taux_conta
         self.conclusion = conclusion
+        self.seuil_hauteur = seuil_hauteur
 
     def conclusion_echantillon(self,liste_foetus):
         compteur = 0
@@ -19,6 +20,24 @@ class Echantillon:
             self.conclusion = 0
         else:
             self.conclusion = 1
+
+    def get_seuil_nbre_marqueurs(self):
+        return self.seuil_nbre_marqueurs
+
+    def get_seuil_taux_conta(self):
+        return self.seuil_taux_conta
+
+    def get_seuil_hauteur(self):
+        return self.seuil_hauteur
+
+    def set_seuil_nbre_marqueurs(self,nb):
+        self.seuil_nbre_marqueurs = nb
+
+    def set_seuil_taux_conta(self,taux):
+        self.seuil_taux_conta = taux
+
+    def set_seuil_hauteur(self,hauteur):
+        self.seuil_hauteur = hauteur
 
 class Patient:
 
@@ -132,16 +151,16 @@ class Foetus(Patient):
         taux_contamination = ((hauteur_allele_contaminant) / (hauteur_allele_different + hauteur_allele_contaminant)) * 100
         self.taux = round(taux_contamination,2)
 
-    def verif_homozygote_contamine(self):
-        seuil = 1/3
+    def verif_homozygote_contamine(self,echantillon):
+        seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 1
             self.informatif = 1
         else:
             self.taux = 0.0
 
-    def homozygote_contamine(self):
-        seuil = 1/3
+    def homozygote_contamine(self,echantillon):
+        seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[1] < self.hauteur[0] * seuil:
             allele_contaminant = 1
             taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
@@ -238,7 +257,7 @@ def lecture_fichier(path_data_frame):
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
-    Echantillon_F = Echantillon(F,2,0.05,None)
+    Echantillon_F = Echantillon(F)
     log = log + "Donnees chargees.......................................\n"
     return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F, log
 
@@ -350,11 +369,11 @@ def traitement_donnees(mere,foetus,echantillon,log):
                 log = log + "Deux allèles détectés..............\n"
                 if foetus[nbre_lignes].informatif == 2:
                     log = log + "Si mêmes allèles, vérification homozygote contaminé...............\n"
-                    foetus[nbre_lignes].verif_homozygote_contamine()
+                    foetus[nbre_lignes].verif_homozygote_contamine(echantillon)
                     if foetus[nbre_lignes].contamination == 1:
                         log = log + "Homozygote contaminé identifié.....................\n"
                         log = log + "Calcul du taux de contamination....................\n"
-                        foetus[nbre_lignes].homozygote_contamine()
+                        foetus[nbre_lignes].homozygote_contamine(echantillon)
                         log = log + "Calcul du taux de contamination effectué...........\n"
                 else:
                     if foetus[nbre_lignes].informatif != 3:
@@ -399,6 +418,6 @@ def traitement_donnees(mere,foetus,echantillon,log):
 
 if __name__ == "__main__":
     #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    M, F, P, Echantillon_F, log = lecture_fichier("181836_xfra jb_200618_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
     concl,log = traitement_donnees(M,F,Echantillon_F,log)
     print(concl)
