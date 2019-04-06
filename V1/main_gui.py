@@ -3,7 +3,7 @@
 #version application 0.2
 import kivy
 
-import Traitement_1
+import Traitement2
 
 from kivy.app import App
 from kivy.config import Config
@@ -85,7 +85,7 @@ class EcranFctMethod(GridLayout):
         self.titre = "Echantillon: " + donnees["Sample Name"][1]
         #print(donnees)
 
-        M, F, P, Echantillon_F = Traitement_1.lecture_fichier(os.path.join(path, filename[0]))
+        M, F, P, Echantillon_F, log = Traitement2.lecture_fichier(os.path.join(path, filename[0]))
         """ Ici tu recuperes les donnees. Pour que tu puisses accéder aux seuils, j'ai mis des getters sur la classe Echantillon
         De bases les valeurs sont respectivements : 1/3, 0.05, 2
         Voila pour les récupérer du coup :
@@ -104,7 +104,8 @@ class EcranFctMethod(GridLayout):
         print(os.path.join(path, filename[0]))
 
         self.dismiss_popup()
-        self.corps = Traitement_1.traitement_donnees(M, F, Echantillon_F)
+        self.corps = Traitement2.Echantillon.analyse_donnees(Echantillon_F, M, F, log)
+        #Modifié car analyse_donnees et dans la classe echantillon maintenant.
 
     def show_save(self):
         content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
