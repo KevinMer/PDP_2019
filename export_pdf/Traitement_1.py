@@ -217,6 +217,7 @@ def lecture_fichier(path_data_frame):
     Donnees_Mere = []
     Donnees_Foetus = []
     Donnees_Pere = []
+    S_File_p = ""
     Donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
     Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
     if (Donnees.shape[0] > 32):
@@ -229,14 +230,19 @@ def lecture_fichier(path_data_frame):
                  Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
                    Hauteur[ligne + 1], None, None, None,None)
+        if (ligne<=2):
+            S_File_m = Donnees["Sample File"][0]
+            S_File_f = Donnees["Sample File"][1]
         if (Iterateur == 3):
+            if (ligne<=2):
+                S_File_p = Donnees["Sample File"][2]
             P = Patient(Donnees["Marker"][ligne],
                         Allele[ligne + 2], Hauteur[ligne + 2], None)
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
     Echantillon_F = Echantillon(F,2,0.05,None)
-    return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F
+    return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F, S_File_m, S_File_f, S_File_p
 
 
 def homogeneite_type(list_allele, list_hauteur):
@@ -335,6 +341,6 @@ def traitement_donnees(mere,foetus,echantillon):
 
 if __name__ == "__main__":
     #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    M, F, P, Echantillon_F = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
+    M, F, P, Echantillon_F,S_File_m, S_File_f, S_File_p = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
     concl = traitement_donnees(M,F,Echantillon_F)
     print(concl)
