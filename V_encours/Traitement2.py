@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from datetime import datetime
 from time import strftime
+import re
 
 #heure = datetime.now()
 #heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
@@ -16,6 +17,7 @@ class Echantillon:
     """ Parameters used to analyze one fetal sample
 
     Attributes:
+        date : date sample 
         liste_lignes (list) : extracted from txt file, lines corresponding to fetus
         sexe (str) : fetus sex
         concordance (str) : DNAs match between mother and fetus
@@ -25,10 +27,11 @@ class Echantillon:
         conclusion (int) : contaminated sample (1) or not (0)
      """
 
-    def __init__(self,liste_lignes,sexe=None,concordance_global=None,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
+    def __init__(self,date,liste_lignes,sexe=None,concordance_global=None,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
         """ The constructor for Echantillon class
 
         Parameters:
+            date : date sample
             liste_lignes (list) : extracted from txt file, lines corresponding to fetus
             sexe (str) : fetus sex
             concordance (str) : DNAs match between mother and fetus
@@ -38,7 +41,7 @@ class Echantillon:
             conclusion (int) : contaminated sample (1) or not (0)
 
          """
-
+        self.date = date
         self.liste_lignes = liste_lignes
         self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
         self.seuil_taux_conta = seuil_taux_conta
@@ -46,6 +49,9 @@ class Echantillon:
         self.seuil_hauteur = seuil_hauteur
         self.sexe = sexe
         self.concordance_global = concordance_global
+
+    def get_date(self):
+        return self.date
 
     def get_seuil_nbre_marqueurs(self):
         """ Return seuil_nbre_marqueurs
@@ -258,8 +264,7 @@ class Echantillon:
                     resultat["Détails"].append("Allèles mères : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(liste_M[nbres].allele))
                 else:
                     resultat["Détails"].append("")
-
-                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé"]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
+                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
                 resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance", "Détails"])
             return resultats, conclusion
         else:
@@ -296,7 +301,7 @@ class Echantillon:
                 moyenne_conta = somme_conta / marqueurs_conta
             except ZeroDivisionError:
                 moyenne_conta = 0
-            conclusion = pd.DataFrame({"1": [marqueurs_non_conta,marqueurs_conta,moyenne_conta]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
+            conclusion = pd.DataFrame({"1": [int(marqueurs_non_conta),int(marqueurs_conta),round(moyenne_conta,2),self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
             return resultats,conclusion
 
     def conclusion_echantillon(self,liste_foetus):
@@ -542,6 +547,7 @@ def lecture_fichier(path_data_frame):
         Iterateur = 3
     Allele_na = Donnees[["Allele 1", "Allele 2", "Allele 3"]].values
     Hauteur_na = Donnees[["Height 1", "Height 2", "Height 3"]].values
+    Date_echantillon = re.search("(\d{4}-\d{2}-\d{2})",Donnees["Sample File"].values[0]).group()
     Allele, Hauteur, log = homogeneite_type(Allele_na, Hauteur_na,log)
     for ligne in range(0, Donnees.shape[0] - 1, Iterateur):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
@@ -554,7 +560,7 @@ def lecture_fichier(path_data_frame):
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
-    Echantillon_F = Echantillon(F)
+    Echantillon_F = Echantillon(Date_echantillon,F)
     log = log + "Donnees chargees.......................................\n"
     return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F, log
 
