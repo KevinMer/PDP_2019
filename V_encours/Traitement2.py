@@ -124,7 +124,7 @@ class Echantillon:
         Taille = 16
         concordance = 0
         liste_concordance = []
-        log = log + "Vérification concordance des ADNs..............................\n"
+        log = log + "\n\nVérification concordance des ADNs..............................\n"
         for Alleles in range(Taille):
             for Allele_Foe in range(3):
                 if foetus[Alleles].allele[Allele_Foe] in mere[Alleles].allele:
@@ -137,7 +137,7 @@ class Echantillon:
                         liste_concordance.append("NON")
                         log = log + "Concordance pour marqueur " + foetus[Alleles].marqueur + " PAS OK..............\n"
                         break
-        log = log + "Vérification concordance des ADns terminée..................................\n"
+        log = log + "Vérification concordance des ADns terminée..................................\n\n\n"
         if concordance != 16:
             resultats = self.resultat(concordance,foetus, liste_concordance)
             log = log + "Concordance des ADNs PAS OK....................\n"
@@ -147,7 +147,7 @@ class Echantillon:
         else:
             log = log + "Traitement des 15 autres marqueurs..............................\n"
             for nbre_lignes in range(1,len(mere)):
-                log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + ".........."
+                log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + "..........\n"
                 pic = foetus[nbre_lignes].foetus_pics()
                 log = log + "Calcul du nombre d'allèles pour le foetus......................\n"
                 log = log + "Nombre d'allèles pour le foetus : " + str(pic) + ".........\n"
@@ -205,8 +205,7 @@ class Echantillon:
                         log = log + "Marqueur non contaminé, affectation du code contamination 0................\n"
                         foetus[nbre_lignes].contamination = 0
                 log = log + "\n\n"
-                log = log + "Traitement nouveau marqueur\n\n"
-            log = log + "Calcul échantillon contaminé ou non......"
+            log = log + "Calcul échantillon contaminé ou non......\n"
             log = log + "Marqueur contaminé si >" + str(self.seuil_taux_conta) + ".......\n"
             log = log + "Echantillon contaminé si plus de " + str(self.seuil_nbre_marqueurs) + "marqueurs contaminés...\n"
             self.conclusion_echantillon(foetus)
@@ -280,13 +279,13 @@ class Echantillon:
                         somme_conta = somme_conta + liste_F[nbres].taux
                         resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                         resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails"].append("Taux contamination : "f'{str(liste_F[nbres].taux)} %')
+                        resultat["Détails"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     else:
                         marqueurs_conta+=1
                         somme_conta = somme_conta + liste_F[nbres].taux
                         resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                         resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails"].append("Taux contamination : "f'{str(liste_F[nbres].taux)} %')
+                        resultat["Détails"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                 elif liste_F[nbres].informatif == 2:
                     resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                     resultat["Conclusion"].append("Non informatif")
@@ -597,7 +596,6 @@ def homogeneite_type(list_allele, list_hauteur, log):
     return Allele, Hauteur, log
         
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
     resultats, conclusion, log = Echantillon_F.analyse_donnees(M,F,log)
-    print(resultats)
-    print(conclusion)
+    print(log)
