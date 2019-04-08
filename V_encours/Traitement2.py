@@ -13,8 +13,32 @@ from time import strftime
 
 
 class Echantillon:
+    """ Parameters used to analyze one fetal sample
+
+    Attributes:
+        liste_lignes (list) : extracted from txt file, lines corresponding to fetus
+        sexe (str) : fetus sex
+        concordance (str) : DNAs match between mother and fetus
+        seuil_nbre_marqueurs (int) : marker number which have to be contaminated to declare sample as contaminated
+        seuil_taux_conta (int) : one marker is contaminated if his contamination percentage is higher than the value
+        seuil_hauteur (int) : spike height to check
+        conclusion (int) : contaminated sample (1) or not (0)
+     """
 
     def __init__(self,liste_lignes,sexe=None,concordance=None,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
+        """ The constructor for Echantillon class
+
+        Parameters:
+            liste_lignes (list) : extracted from txt file, lines corresponding to fetus
+            sexe (str) : fetus sex
+            concordance (str) : DNAs match between mother and fetus
+            seuil_nbre_marqueurs (int) : marker number which have to be contaminated to declare sample as contaminated
+            seuil_taux_conta (int) : one marker is contaminated if his contamination percentage is higher than the value
+            seuil_hauteur (int) : spike height to check
+            conclusion (int) : contaminated sample (1) or not (0)
+
+         """
+
         self.liste_lignes = liste_lignes
         self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
         self.seuil_taux_conta = seuil_taux_conta
@@ -24,42 +48,79 @@ class Echantillon:
         self.concordance = concordance
 
     def get_seuil_nbre_marqueurs(self):
+        """ Return seuil_nbre_marqueurs
+         """
         return self.seuil_nbre_marqueurs
 
     def get_seuil_taux_conta(self):
+        """ Return seuil_taux_con
+         """
         return self.seuil_taux_conta
 
     def get_seuil_hauteur(self):
+        """ Return seuil_hauteur
+         """
         return self.seuil_hauteur
 
     def get_conclusion(self):
+        """ Return conclusion
+         """
         return self.conclusion
 
     def get_sexe(self):
+        """ Return sex
+         """
         return self.sexe
+    
+    def get_concordance(self):
+        """ Return concordance
+         """
+        return self.concordance
 
     def set_seuil_nbre_marqueurs(self,nb):
+        """ Set seuil_nbre_marqueurs
+         """
         self.seuil_nbre_marqueurs = nb
 
     def set_seuil_taux_conta(self,taux):
+        """ Set seuil_taux_conta
+         """
         self.seuil_taux_conta = taux
 
     def set_seuil_hauteur(self,hauteur):
+        """ Set seuil_hauteur
+         """
         self.seuil_hauteur = hauteur
     
     def set_sexe(self,sexe):
+        """ Set sex 
+        """
         self.sexe = sexe
     
     def set_concordance(self,concordance):
+        """ Set concordance 
+         """
         self.concordance = concordance
 
     def set_conclusion(self,conclusion):
+        """ Set conclusion
+         """
         self.conclusion = conclusion
 
     def analyse_donnees(self,mere, foetus, log):
-    #Entree : la liste qui contient toutes les lignes de la mère, la liste qui contient toutes les lignes du foetus
-    #Vérifie pour chaque position de la liste si un allèle est en commmun entre les deux listes. La concordance est incrémentée de 1 si c'est le cas.
-    #Retourne la concordance.
+        """ Analyze data
+            For one couple lignes mother/fetus, informative character and conclusion is set
+        
+            Parameters :
+                mere (list) : lines extracted from txt file corresponding to mother
+                foetus (list) : lines extracted from txt file corresponding to fetus 
+                
+            Return two dataframes :
+                - first one containing information about Name, Conclusion and Details for each marker
+                - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers )
+
+            """
+
         Taille = 16
         concordance = 0
         liste_concordance = []
@@ -155,14 +216,39 @@ class Echantillon:
             return resultats, conclusion, log
 
     def resultat(self,concordance,liste_F,liste_concordance):
-    #Entree : le resultat de la concordance, une liste contenant toutes les lignes du foetus
-    #Ecrit dans un fichier texte la conclusion pour chaque marqueur respectif
-    #Ne renvoie rien
+        """ Set informative character and conclusion for each marker using code tables
+                Code tables are :
+
+                Informative code :
+                    0 : Homozygous mother
+                    1 : Informative marker
+                    2 : Same alleles between mother and fetus
+                    3 : Stutter
+
+                Contamination code :
+                    0 : No contamination
+                    1 : Homozygous marker contaminated
+                    2 : Heterozygous marker contaminated
+
+                Samle conclusion code :
+                    0 : not contaminated
+                    1 : contaminted
+
+            Parameters :
+                - concordance (int) : DNAs matching markers between mother and fetus
+                - list_F (list) : contains fetus lines from txt file
+                - liste_concordance (list) : DNAs match information
+
+            Return two dataframes :
+                - first one containing information about Name, Conclusion and Details for each marker
+                - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers)
+
+         """
         resultat = {"Marqueur":[],"Conclusion": [],"Détails":[],"Concordance":[]}
         marqueurs_conta = 0
         marqueurs_non_conta = 0
         somme_conta = 0
-        if liste_F[0].sexe == "F":
+        if liste_F[0].allele[1] == 0.0:
             self.set_sexe("F")
         else:
             self.set_sexe("M")
@@ -210,11 +296,23 @@ class Echantillon:
                     resultat["Conclusion"].append("Non informatif")
                     resultat["Détails"].append("Echo")
             resultats = pd.DataFrame(resultat)
-            moyenne_conta = somme_conta / marqueurs_conta
+            try :
+                moyenne_conta = somme_conta / marqueurs_conta
+            except ZeroDivisionError:
+                moyenne_conta = 0
             conclusion = pd.DataFrame({"1": [marqueurs_non_conta,marqueurs_conta,moyenne_conta]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
             return resultats,conclusion
 
     def conclusion_echantillon(self,liste_foetus):
+        """ This concludes about sample contamination or not.
+
+            Compare number of contaminated markers (more or equal to 5 %) to seuil_taux_conta.
+            If the number is higher than seuil_taux_conta -> sample is contaminated
+            Else -> sample is not contaminated
+
+            Parameters :
+                liste_foetus (list) : contains fetus lines from txt file
+         """
         compteur = 0
         for lignes in range(1,len(liste_foetus)):
             if liste_foetus[lignes].contamination != 0 and liste_foetus[lignes].taux > self.seuil_taux_conta:
@@ -226,44 +324,56 @@ class Echantillon:
 
 class Patient:
 
+    """ Common informations between mother and fetus
+
+        Attributes :
+            marqueur (list) : markers list
+            allele (list) : alleles list
+            hauteur (list) : alleles height list
+            informatif (int) : informatif character of marker
+     """
+
     def __init__(self, marqueur, allele, hauteur, informatif):
+        """ The constructor for Patient class
+
+            Parameters :
+            marqueur (list) : markers list
+            allele (list) : alleles list
+            hauteur (list) : alleles height list
+            informatif (int) : informatif character of marker
+         """
+
         self.marqueur = marqueur
         self.allele = allele
         self.hauteur = hauteur
         self.informatif = informatif
 
     def allele_semblable(self, mere): 
-        #Entree : une ligne du foetus, la ligne mère correspondante
-        #Détermine si les allèles sont les mêmes
-        #Si c'est le cas, l'attribut informatif de la ligne foetus se voit attribuer la valeur 2
+        """ Check for each marker if fetus and mother have the same alleles list.
+            Because homozygous marker from mother is always non-informative character, we only check similarity for heterozygous marker.
+
+            Parameters :
+                - mere (list) : mere class object
+
+            If Similarite is equal to two, informative code is set to 2.
+         """
         Similarite = 0
         for Allele in range(3):
             if self.allele[Allele] in mere.allele and self.allele[Allele] != 0.0:
                 Similarite = Similarite + 1
         if Similarite == 2:
             self.informatif = 2
-        
-#CODE Informatif:
-# 0 Mere HMZ
-# 1 Informatif
-# 2 Memes Alleles
-# 3 Echo
-
-#CODE Contamine:
-# 0 Pas conta
-# 1 HMZ Conta
-# 2 HTZ Conta
-
-#CODE Conclusion:
-
-#0 : contamine
-#1 : non contamine
-
 
     def echo(self, foetus):
-        #Entree : une ligne de la mère, la ligne foetus correspondante
-        #Détermine si il y a écho
-        # Si oui, l'attribut "informatif" de la ligne foetus se voit attribuer la valeur 3
+        """ Allow to detect stutter.
+            Stutter : Fetus alleles are 12 and 8, Mother alleles are 11 and 10. 11 is a stutter because is n-1 (12-1) from fetus alleles
+
+            Parameters :
+                - foetus (list) : list of fetus object corresponding to each line of the fetus extracted from the txt file
+
+            If a stutter is detected, fetus informative code is set to 3.
+
+         """
         Allele_semblable = 0
         for Allele in range(3):
             if self.allele[Allele] in foetus.allele and self.allele[Allele] != 0.0:
@@ -282,48 +392,75 @@ class Patient:
 
 class Mere(Patient):
 
+    """ Exclusive informations about the mother. Mere class inherits from Patient.
+
+        Attributes :
+            homozygote (boolean) : set to True if the mother is homozygous for the marker studied
+     """
+
     def __init__(self, marqueur, allele, hauteur, informatif, homozygote):
+        """ The constructor for Mere class
+
+            Parameters :
+                - homozygote (boolean) : set to True if the mother is homozygous for the marker studied
+         """
+
         super().__init__(marqueur, allele, hauteur, informatif)
         self.homozygote = homozygote
 
     def homozygotie(self):
-        #Entree : une ligne mère
-        #Détermine si pour cette ligne la mère est homozygote
-        #Si oui, l'attribut homozygote de la ligne mère se voit attribuer la valeur true
+        """ Detect if the mother is homozygous for the marker stutied.
+            If it's true, homozygote is set to True
+         """
         if self.allele[1] == 0.0:
             self.homozygote = True
 
 
 class Foetus(Patient):
 
-    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux,sexe):
+    """ Exclusive informations about the fetus. Mere class inherits from Patient.
+
+        Attributes :
+            - contamination (int) : 0 if the marker is not contaminated. 1 if it is.
+            - taux (int) : value corresponding to the contamination
+     """
+
+    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux):
+        """ The constructor for Mere class
+
+            Parameters :
+                - contamination (int) : 0 if the marker is not contaminated. 1 if it is.
+                - taux (int) : value corresponding to the contamination
+         """
+
         super().__init__(marqueur, allele, hauteur, informatif)
         self.contamination = contamination
         self.taux = taux
-        self.sexe = sexe
 
     def foetus_pics(self):
-        #Entree : une ligne du foetus
-        #Détermine le nombre de pics pour cette ligne
-        #Retourne le nombre de pic
+        """ Count spikes number (alleles number)
+
+            Return :
+                Spikes number
+         """
         pic = 0
         if 0.0 not in self.allele:
             self.contamination = 2
             pic = 3
-            # contamination_heterozygote(self)
         elif 0.0 == self.allele[1]:
             pic = 1
-            # foetus à un pic
         else:
             pic = 2
-            # if self.marqueur ==
-            # foetus à deux pics
         return pic
 
     def contamination_heterozygote(self,mere):
-        #Entree : une ligne du foetus, la ligne mère correspondante
-        #Calcul le pourcentage de contamination hétérozygote
-        #L'attribut taux de la ligne foetus se voit attribuer le pourcentage correspondant
+        """ Compute contamination value for heterozygous contamination.
+
+            Parameters :
+                - mere (list) : list of Mere object corresponding to each line of the mother extracted from the txt file
+
+            Set taux attribute to value computed.
+         """
         hauteur_allele_contaminant = 99999999999999999.0
         hauteur_allele_different = None
         taux_contamination = 0
@@ -337,6 +474,14 @@ class Foetus(Patient):
         self.taux = round(taux_contamination,2)
 
     def verif_homozygote_contamine(self,echantillon):
+        """ Check if the marker is homozygous contaminated
+
+            Parameters :
+            - echantillon : Echantillon object
+
+            If the marker is contaminated, contamination code is set to 1 and informative code is set to 1 too.
+            Set taux attribute to value computed.
+         """
         seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 1
@@ -345,6 +490,13 @@ class Foetus(Patient):
             self.taux = 0.0
 
     def homozygote_contamine(self,echantillon):
+        """ Compute contamination value for homozygous contamination.
+
+            Parameters :
+                - echantillon : Echantillon object
+
+            Set taux attribute to value computed.
+         """
         seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[1] < self.hauteur[0] * seuil:
             allele_contaminant = 1
@@ -357,37 +509,32 @@ class Foetus(Patient):
 
 
 class Pere(Patient):
+    """ Exclusive informations about the father. Pere class inherits from Patient.
+
+        Do not implemented because mother and fetus are enough to conclude.
+     """
 
     def __init__(self, marqueur, allele, hauteur, informatif):
         super().__init__(marqueur, allele, hauteur,informatif)
 
-
-#CODE Infor:
-# 0 Mere HMZ
-# 1 Informatif
-# 2 Memes Alleles
-# 3 Echo
-
-#CODE CONTA:
-# 0 Pas conta
-# 1 HMZ Conta
-# 2 HTZ Conta
-
-
-
-
-
-
-
 def lecture_fichier(path_data_frame):
+    """ Read file corresponding to path_data_frame.
+        For each line, Mere, Foetus or Pere object are created.
+        At the end, one Echantillon object is created.
+
+        Parameters :
+        - path_data_frame (file)
+
+        Return :
+        Donnees_Mere (list) : list of Mere object corresponding to each line of the mother extracted from the txt file
+        Donnees_Foetus (list) : list of Foetus object corresponding to each line of the fetus extracted from the txt file
+        Donnees_Pere (list) : list of Pere object corresponding to each line of the father extracted from the txt file
+        Echantillon_F : Echantillon object to summerize the file
+     """
     logger = logging.getLogger('Lecture du fichier')
     log = "#### DPNMaker 1.0..............\n### Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou\n#### Date : 1 avril 2019\n\n"
     log = log + "Ouverture du fichier.......................................\n"
     log = log + "Chargement des données.......................................\n"
-    #Entree : le fichier que l'on souhaite ouvrir
-    #Lis le data frame et appelle les constructeurs correspondants pour chaque ligne (foetus,mère,père). Les instances sont stockées dans des listes distinces.
-    #Retourne la listes des instances pour les lignes mère, foetus et père.
-    # Differentier csv, txt -> regex
     Iterateur = 2
     Donnees_Mere = []
     Donnees_Foetus = []
@@ -403,7 +550,7 @@ def lecture_fichier(path_data_frame):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                  Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, None,None)
+                   Hauteur[ligne + 1], None, None, None)
         if (Iterateur == 3):
             P = Patient(Donnees["Marker"][ligne],
                         Allele[ligne + 2], Hauteur[ligne + 2], None)
@@ -416,10 +563,17 @@ def lecture_fichier(path_data_frame):
 
 
 def homogeneite_type(list_allele, list_hauteur, log):
+    """ Allow to convert string into float for Alleles and Height values in order to compute contamination.
+
+        Parameters :
+            - list_allele (list) : alleles list
+            - list_height (list) : height list
+
+        Return :
+            - Allele (list) : converted values
+            - Hauteur (list) : converted values
+     """
     log = log + "Normalisation des données..........................\n"
-    #Entree : liste de tout les allèles du fichier, liste de toutes les hauteurs du fichier
-    #Transforme toutes les valeurs, exceptées celles des deux premières lignes en float.
-    #Retourne les listes d'allèles et de hauteurs nouvellement modifiées en float.
     iteration = 2
     Allele = []
     Hauteur = []
@@ -442,24 +596,8 @@ def homogeneite_type(list_allele, list_hauteur, log):
     log = log + "Normalisation effectuée..............................\n"
     return Allele, Hauteur, log
         
-
-#CODE Informatif:
-# 0 Mere HMZ
-# 1 Informatif
-# 2 Memes Alleles
-# 3 Echo
-
-#CODE Contamine:
-# 0 Pas conta
-# 1 HMZ Conta
-# 2 HTZ Conta
-
-
-
-
 if __name__ == "__main__":
-    #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
     resultats, conclusion, log = Echantillon_F.analyse_donnees(M,F,log)
     print(resultats)
     print(conclusion)
