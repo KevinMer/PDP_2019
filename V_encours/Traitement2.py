@@ -296,7 +296,7 @@ class Echantillon:
                 moyenne_conta = somme_conta / marqueurs_conta
             except ZeroDivisionError:
                 moyenne_conta = 0
-            conclusion = pd.DataFrame({"1": [marqueurs_non_conta,marqueurs_conta,moyenne_conta]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
+            conclusion = pd.DataFrame({"1": [int(marqueurs_non_conta),int(marqueurs_conta),round(moyenne_conta,2)]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
             return resultats,conclusion
 
     def conclusion_echantillon(self,liste_foetus):
