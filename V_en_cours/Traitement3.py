@@ -55,7 +55,7 @@ class Echantillon:
     def get_date(self):
         return self.date
 
-    def gate_name(self):
+    def get_name(self):
         return self.name
 
     def get_seuil_nbre_marqueurs(self):
