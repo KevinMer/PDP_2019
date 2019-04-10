@@ -532,7 +532,7 @@ class Foetus(Patient):
             - taux (int) : value corresponding to the contamination
     """
 
-    def __init__(self, marqueur, allele, hauteur, concordance_mere_foetus, informatif, contamination,taux):
+    def __init__(self, marqueur, allele, hauteur, concordance_mere_foetus, informatif, num_foetus,contamination,taux):
         """ The constructor for Mere class
 
             Parameters :
@@ -541,9 +541,13 @@ class Foetus(Patient):
         """
 
         super().__init__(marqueur, allele, hauteur, informatif)
+        self.num_foetus = num_foetus
         self.contamination = contamination
         self.taux = taux
         self.concordance_mere_foetus = concordance_mere_foetus
+
+    def get_num_foetus(self):
+        return self.num_foetus
 
     def foetus_pics(self):
         """ Count spikes number (alleles number)
@@ -622,9 +626,13 @@ class Pere(Patient):
         Do not implemented because mother and fetus are enough to conclude.
     """
 
-    def __init__(self, marqueur, allele, hauteur, informatif,concordance_pere_foetus):
+    def __init__(self, marqueur, allele, hauteur, informatif,num_pere,concordance_pere_foetus):
         super().__init__(marqueur, allele, hauteur,informatif)
+        self.num_pere = num_pere
         self.concordance_pere_foetus = concordance_pere_foetus
+
+    def get_num_pere(self):
+        return self.num_pere
 
 def lecture_fichier(path_data_frame):
     """ Read file corresponding to path_data_frame.
@@ -652,19 +660,21 @@ def lecture_fichier(path_data_frame):
     Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
     if (Donnees.shape[0] > 32):
         Iterateur = 3
+        num_pere = Donnees["Sample Name"].values[2]
     Allele_na = Donnees[["Allele 1", "Allele 2", "Allele 3"]].values
     Hauteur_na = Donnees[["Height 1", "Height 2", "Height 3"]].values
     Date_echantillon = re.search("(\d{4}-\d{2}-\d{2})",Donnees["Sample File"].values[0]).group()
     Nom_echantillon = Donnees["Sample Name"].values[0]
+    num_foetus = Donnees["Sample Name"].values[1]
     Allele, Hauteur, log = homogeneite_type(Allele_na, Hauteur_na,log)
     for ligne in range(0, Donnees.shape[0] - 1, Iterateur):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                 Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                Hauteur[ligne + 1], None, None, None, None)
+                Hauteur[ligne + 1], None, None,num_foetus, None, None)
         if (Iterateur == 3):
             P = Pere(Donnees["Marker"][ligne],
-                        Allele[ligne + 2], Hauteur[ligne + 2], None,None)
+                        Allele[ligne + 2], Hauteur[ligne + 2], None,num_pere,None)
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
