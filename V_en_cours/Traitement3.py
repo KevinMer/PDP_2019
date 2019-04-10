@@ -308,7 +308,7 @@ class Echantillon:
                 conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
                 resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus","Détails M/F", "Concordance Pere/Foetus", "Détails P/F"])
             return resultats, conclusion
-        elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F):
+        elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F) or concordance_mf != len(liste_F) and concordance_pf == None:
             self.set_concordance_mere_foet("NON")
             self.set_concordance_pere_foet("OUI")
             del resultat["Conclusion"]
@@ -324,7 +324,7 @@ class Echantillon:
                 conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
                 resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F"])
             return resultats, conclusion
-        elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) :
+        elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) or concordance_mf == len(liste_F) and concordance_pf == None:
             self.set_concordance_mere_foet("OUI")
             self.set_concordance_pere_foet("OUI")
             del resultat["Concordance Mere/Foetus"]
@@ -406,8 +406,6 @@ class Echantillon:
                 moyenne_conta = 0
             conclusion = pd.DataFrame({"1": [int(marqueurs_non_conta),int(marqueurs_conta),round(moyenne_conta,2),self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
             return resultats,conclusion
-        else:
-            print("Erreur")
 
 
     def conclusion_echantillon(self,liste_foetus):
