@@ -311,6 +311,8 @@ class Echantillon:
         elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F) or concordance_mf != len(liste_F) and concordance_pf == None:
             self.set_concordance_mere_foet("NON")
             self.set_concordance_pere_foet("OUI")
+            if concordance_pf == None:
+                self.set_concordance_pere_foet("ABS")
             del resultat["Conclusion"]
             del resultat["Concordance Pere/Foetus"]
             del resultat["Détails P/F"]
@@ -327,6 +329,8 @@ class Echantillon:
         elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) or concordance_mf == len(liste_F) and concordance_pf == None:
             self.set_concordance_mere_foet("OUI")
             self.set_concordance_pere_foet("OUI")
+            if concordance_pf == None:
+                self.set_concordance_pere_foet("ABS")
             del resultat["Concordance Mere/Foetus"]
             del resultat["Concordance Pere/Foetus"]
             del resultat["Détails P/F"]
