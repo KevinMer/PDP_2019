@@ -9,29 +9,44 @@ ScreenManagement:
     
 <EcranPremier>:
     BoxLayout:
-        orientation: 'horizontal'
-
-        Image:
-            source:"logo.png"
+        orientation: 'vertical'
+        BoxLayout:
+            orientation:"horizontal"
+            Image:
+                source:"logo.png"
+            Label:
+                text:"DPN 3000"
+                font_size: "100sp"
+                color: [256, 256, 256, 1]
 
         BoxLayout:
             orientation: 'vertical'
 
-            Label:
-                text:"Bienvenue! \n   Veuillez ouvrir un fichier \n       pour commencer"
-                font_size: "40sp"
-                color: [256, 256, 256, 1]
+            
             BoxLayout:
-                spacing: 10
                 padding: 100
-                Button:
-
-                    text: "Ouvrir un fichier"
+                Label:
+                    text:" Choisir un fichier: "
                     font_size: "40sp"
-                    on_release: root.manager.current = 'ecran_principale'
+                    color: [256, 256, 256, 1]
+                
+                BoxLayout:
+                    padding:75
+                    Button:
+                        
+                        
+                        
+                        background_normal: ''
+                        background_color: (75/255, 127/255, 209/255,1)
+                        text: "Ouvrir"
+                        font_size: "30sp"
+
+                        on_release: root.manager.current = 'ecran_principale'
+                        on_release:root.show_load()
 <EcranFct>:
     name: 'ecran_principale'
     EcranFctMethod:
+        id:ecranMethod
 
 
 <EcranFctMethod>
@@ -40,15 +55,24 @@ ScreenManagement:
     spacing: 10
     padding: 10
     cols: 1
-    rows: 3
+    rows: 2
     titre: "Echantillon"
     corps:""
 
 
     BoxLayout:
+        id:barreOutils
 
 
-        size_hint_y:  0.1
+        size_hint_y:  0.05
+        canvas:
+            Color:
+
+                rgba:0.07,0.10,0,1
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         BoxLayout:
 
@@ -57,27 +81,46 @@ ScreenManagement:
             dropdown1: dropdown1.__self__
             dropdown2: dropdown2.__self__
 
+
             Button:
+                background_normal: ''
+                background_color: (0.07,0.10,0,1)
+                color: [0.949, 0.945, 0.945, 1]
                 id:bouton_fichier
                 text: "Fichier"
                 font_size: "15sp"
                 on_parent: dropdown1.dismiss()
                 on_release: dropdown1.open(self)
 
+
+
                 DropDown:
                     id: dropdown1
 
                     Button:
+                        height: 44
+                        size_hint_y: barreOutils.size_hint_y
+                        background_normal: ''
+                        background_color: (0.07,0.10,0,1)
+                        color: [0.949, 0.945, 0.945, 1]
                         id:bouton_ouvrir
                         text: 'Ouvrir'
                         size_hint_y: None
                         on_release: ecranfct.show_load()
                     Button:
+                        height: 44
+                        background_normal: ''
+                        background_color: (0.07,0.10,0,1)
+                        color: [0.949, 0.945, 0.945, 1]
                         id: bouton_sauvegarder
                         text: 'Sauvegarder resultats'
                         size_hint_y: None
                         on_release: ecranfct.show_save()
                     Button:
+                        height: 44
+                        background_normal: ''
+                        background_color: (0.07,0.10,0,1)
+                        color: [0.949, 0.945, 0.945, 1]
                         id:boutton_quitter
                         text: 'Quitter'
 
@@ -85,9 +128,16 @@ ScreenManagement:
                         on_release: ecranfct.quitter()
 
             Button:
+
+                background_normal: ''
+                background_color: (0.07,0.10,0,1)
+                color: [0.949, 0.945, 0.945, 1]
                 text: "Affichage"
                 font_size: "15sp"
             Button:
+                background_normal: ''
+                background_color: (0.07,0.10,0,1)
+                color: [0.949, 0.945, 0.945, 1]
                 id:bouton_option
                 text: "Options"
                 font_size: "15sp"
@@ -98,12 +148,19 @@ ScreenManagement:
                     id: dropdown2
 
                     Button:
+                        height: 44
+                        background_normal: ''
+                        background_color: (0.07,0.10,0,1)
+                        color: [0.949, 0.945, 0.945, 1]
 
                         text: 'Parametres'
                         size_hint_y: None
                         on_release: ecranfct.ouverture_parametres()
                     Button:
-
+                        height: 44
+                        background_normal: ''
+                        background_color: (0.07,0.10,0,1)
+                        color: [0.949, 0.945, 0.945, 1]
                         text: 'Documentation'
                         size_hint_y: None
 
@@ -112,65 +169,19 @@ ScreenManagement:
         BoxLayout:
 
 
-    BoxLayout:
-        size_hint_y:  0.2
-        BoxLayout:
 
-            BoxLayout:
-
-                BoxLayout:
-
-                BoxLayout:
-
-
-
-            BoxLayout:
-
-                id:bl_titre
-                orientation:'horizontal'
-                Label:
-                    id: titre_echantillon
-                    font_size: "30sp"
-                    color: [256, 256, 256, 1]
-                    text: ecranfct.titre
-                BoxLayout:
-                    padding: 45
-                    Button:
-                        text: "Log"
     BoxLayout:
 
-        BoxLayout:
-            padding :20
-            size_hint_x:  0.2
-            orientation: 'vertical'
 
-            BoxLayout:
-                spacing: 20
-                orientation: 'vertical'
-                #Button:
-
-                    #text: 'Comparaison'
-
-
-
-
-            BoxLayout:
 
 
         BoxLayout:
             TableOnglets:
                 id:les_onglets
+
                 do_default_tab: False
-                TabbedPanelItem:
-                    text: 'Analyse 1'
-                    Label:
 
 
-                        font_size: "15sp"
-                        text_size: self.height, None
-                        id:corps_de_text
-                        #color: [256, 256, 256, 1]
-                        text: ecranfct.corps
 
         
 
@@ -227,36 +238,55 @@ ScreenManagement:
 
 
 <ParametreDialog>:
-
     BoxLayout:
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:3
+                rectangle:(self.x, self.y, self.width, self.height)
+            Color:
+
+                rgba:0.949, 0.945, 0.945, 1
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
         size: root.size
         pos: root.pos
         orientation: "vertical"
         BoxLayout:
+            padding:0,90,90,90
             Label:
                 id: lab_premier_para
-                text: "Seuil pour le nombre de marqueurs"
+                color: [256, 256, 256, 1]
+                text: "Seuil pour le nombre de marqueurs (défaut:2)"
             TextInput:
                 id: text_input1_para
-                size_hint_y: None
+                text:root.nb
 
                 multiline: False
         BoxLayout:
+            padding:0,90,90,90
             Label:
                 id: lab_deuxieme_para
-                text: "Seuil pour le taux de contamination"
+                color: [256, 256, 256, 1]
+                text: "Seuil pour le taux de contamination (défaut:0.05)"
+            
             TextInput:
-                id: text_input2_par
-                size_hint_y: None
-
+                id: text_input2_para
+                text:root.conta
                 multiline: False
+                center : self.center
         BoxLayout:
+            padding:0,90,90,90
             Label:
                 id:lab_troisieme_para
-                text: "Seuil pour la hauteur des pics"
+                color: [256, 256, 256, 1]
+                text: "Seuil pour la hauteur des pics (défaut:1/3)"
             TextInput:
                 id: text_input3_para
-                size_hint_y: None
+                text:root.hauteur
 
                 multiline: False
         BoxLayout:
@@ -268,7 +298,203 @@ ScreenManagement:
 
             Button:
                 text: "Valider"
-                on_release: root.fermeture_parametres()
+                on_release: root.save_parametres(text_input1_para.text,text_input2_para.text,text_input3_para.text)
 
+<ResAnalyse>:
+    titre:""
+    padding:20
+
+    canvas:
+        Color:
+            rgba:(75/255, 127/255, 209/255,1)
+        Line:
+            width:3
+            rectangle:(self.x, self.y, self.width, self.height)
+        Color:
+
+            rgba:0.949, 0.945, 0.945, 1
+
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+     
+   
+
+    GridLayout:
+        id: resultat_grd_frame
+       
+        cols: 1
+        rows: 4
+        spacing:10
+
+
+
+        BoxLayout:
+            size_hint_y:  0.10
+
+            Label:
+                text_size: self.size
+                halign: 'left'
+                valign: 'middle'
+
+
+                color: [256, 256, 256, 1]
+                text: root.titre
+            BoxLayout:
+        GridLayout:
+            cols: 1
+            rows: 16
+            orientation: "vertical"
+            id:le_tableau
+            padding:2
+            canvas:
+                Color:
+                    rgba:(75/255, 127/255, 209/255,1)
+                Line:
+                    width:2
+                    rectangle:(self.x, self.y, self.width, self.height)
+
+
+        BoxLayout:
+            id:ensemble_info
+            orientation: "horizontal"
+            size_hint_y:  0.25
+            BoxLayout:
+                
+                orientation:"vertical"
+                BoxLayout:
+                    size_hint_y: 0.35
+                    id:nom_prel
+                    Label:
+                        
+                        text:"Le Prélèvement Foetal est: "
+                        color: [256, 256, 256, 1]
+                BoxLayout:
+                    padding:10
+                    orientation: "horizontal"  
+                    ToggleButton:
+                        id:TButtonNonContamine
+                        
+                        text:"Non Contaminé"
+                        group:root.NvGroupe
+                    ToggleButton:
+                        id:TButtonContamine
+                        
+                        text: "Contaminé"
+                        group:root.NvGroupe
+
+            
+                
+
+
+        BoxLayout:
+            spacing:15
+            padding: 10
+            size_hint_y:  0.06
+            Button:
+                size_hint_y:  0.10
+                background_normal: ''
+                background_color: (75/255, 127/255, 209/255,1)
+                color: [0.949, 0.945, 0.945, 1]
+
+                text:'Export PDF'
+            Button:
+                size_hint_y:  0.10
+                background_normal: ''
+                background_color: (75/255, 127/255, 209/255,1)
+                color: [0.949, 0.945, 0.945, 1]
+                text:'Imprimer'
+            Button:
+                size_hint_y:  0.10
+                background_normal: ''
+                background_color: (75/255, 127/255, 209/255,1)
+                color: [0.949, 0.945, 0.945, 1]
+                text:'Log'
+
+<LigneTableau>:
+
+
+    canvas:
+        Color:
+
+            rgba:root.color_mode
+
+        Rectangle:
+
+            pos: self.pos
+            size: self.size
+
+    Label:
+        id:col1
+        color: root.color_text
+        text:root.t_col1
+    Label:
+        id:col2
+        color:root.color_text 
+        text:root.t_col2
+    Label:
+        id:col3
+        color: root.color_text
+        text:root.t_col3
+
+
+
+
+<InfosConclusion>:
+    
+    BoxLayout:
+        padding:2
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:2
+                rectangle:(self.x, self.y, self.width, self.height)
+        orientation:"vertical"
+        BoxLayout:
+            canvas:
+                Color:
+
+                    rgba:(49/255, 140/255, 231/255,0.2)
+
+                Rectangle:
+
+                    pos: self.pos
+                    size: self.size
+            Label:
+                
+                text:root.TLigneInfo1
+                color: [256, 256, 256, 1]
+
+        BoxLayout:
+            canvas:
+                Color:
+
+                    rgba:(0.949, 0.945, 0.945, 1)
+
+                Rectangle:
+
+                    pos: self.pos
+                    size: self.size
+            Label:
+                
+                text:root.TLigneInfo2
+                color: [256, 256, 256, 1]
+        BoxLayout:
+            canvas:
+                Color:
+
+                    rgba:(49/255, 140/255, 231/255,0.2)
+
+                Rectangle:
+
+                    pos: self.pos
+                    size: self.size
+            Label:
+                
+                text:root.TLigneInfo3
+                color: [256, 256, 256, 1]
+        
 
 

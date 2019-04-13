@@ -3,12 +3,13 @@ import numpy as np
 import logging
 from datetime import datetime
 from time import strftime
+import re
 
-#heure = datetime.now()
-#heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
-#logging.basicConfig(filename='app.log', filemode='w',format='%(levelname)s:%(message)s', level=logging.DEBUG)
-#logging.info("################Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou################\n################DPN3000 1.0################\n################"f'{heure_vrai}################')
-#logging.warning('Lancement analyse')
+    #heure = datetime.now()
+    #heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
+    #logging.basicConfig(filename='app.log', filemode='w',format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    #logging.info("################Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou################\n################DPN3000 1.0################\n################"f'{heure_vrai}################')
+    #logging.warning('Lancement analyse')
 
 
 
@@ -16,6 +17,7 @@ class Echantillon:
     """ Parameters used to analyze one fetal sample
 
     Attributes:
+        date : date sample 
         liste_lignes (list) : extracted from txt file, lines corresponding to fetus
         sexe (str) : fetus sex
         concordance (str) : DNAs match between mother and fetus
@@ -23,12 +25,13 @@ class Echantillon:
         seuil_taux_conta (int) : one marker is contaminated if his contamination percentage is higher than the value
         seuil_hauteur (int) : spike height to check
         conclusion (int) : contaminated sample (1) or not (0)
-     """
+    """
 
-    def __init__(self,liste_lignes,sexe=None,concordance_global=None,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
+    def __init__(self,date,name,liste_lignes,sexe=None,concordance_mere_foet=None, concordance_pere_foet=None,seuil_nbre_marqueurs = 2,seuil_taux_conta = 0.05,seuil_hauteur = 1/3,conclusion = None):
         """ The constructor for Echantillon class
 
         Parameters:
+            date : date sample
             liste_lignes (list) : extracted from txt file, lines corresponding to fetus
             sexe (str) : fetus sex
             concordance (str) : DNAs match between mother and fetus
@@ -37,59 +40,72 @@ class Echantillon:
             seuil_hauteur (int) : spike height to check
             conclusion (int) : contaminated sample (1) or not (0)
 
-         """
-
+        """
+        self.date = date
+        self.name = name
         self.liste_lignes = liste_lignes
         self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
         self.seuil_taux_conta = seuil_taux_conta
         self.conclusion = conclusion
         self.seuil_hauteur = seuil_hauteur
         self.sexe = sexe
-        self.concordance_global = concordance_global
+        self.concordance_mere_foet = concordance_mere_foet
+        self.concordance_pere_foet = concordance_pere_foet
+
+    def get_date(self):
+        return self.date
+
+    def get_name(self):
+        return self.name
 
     def get_seuil_nbre_marqueurs(self):
         """ Return seuil_nbre_marqueurs
-         """
+        """
         return self.seuil_nbre_marqueurs
 
     def get_seuil_taux_conta(self):
         """ Return seuil_taux_con
-         """
+        """
         return self.seuil_taux_conta
 
     def get_seuil_hauteur(self):
         """ Return seuil_hauteur
-         """
+        """
         return self.seuil_hauteur
 
     def get_conclusion(self):
         """ Return conclusion
-         """
+        """
         return self.conclusion
 
     def get_sexe(self):
         """ Return sex
-         """
+        """
         return self.sexe
     
-    def get_concordance(self):
+    def get_concordance_mere_foet(self):
         """ Return concordance
-         """
-        return self.concordance
+        """
+        return self.concordance_mere_foet
+
+    def get_concordance_pere_foet(self):
+        """ Return concordance
+        """
+        return self.concordance_pere_foet
 
     def set_seuil_nbre_marqueurs(self,nb):
         """ Set seuil_nbre_marqueurs
-         """
+        """
         self.seuil_nbre_marqueurs = nb
 
     def set_seuil_taux_conta(self,taux):
         """ Set seuil_taux_conta
-         """
+        """
         self.seuil_taux_conta = taux
 
     def set_seuil_hauteur(self,hauteur):
         """ Set seuil_hauteur
-         """
+        """
         self.seuil_hauteur = hauteur
     
     def set_sexe(self,sexe):
@@ -97,17 +113,22 @@ class Echantillon:
         """
         self.sexe = sexe
     
-    def set_concordance(self,concordance):
+    def set_concordance_mere_foet(self,concordance_mere_foet):
         """ Set concordance 
-         """
-        self.concordance = concordance
+        """
+        self.concordance_mere_foet = concordance_mere_foet
+
+    def set_concordance_pere_foet(self,concordance_pere_foet):
+        """ Set concordance 
+        """
+        self.concordance_pere_foet = concordance_pere_foet
 
     def set_conclusion(self,conclusion):
         """ Set conclusion
-         """
+        """
         self.conclusion = conclusion
 
-    def analyse_donnees(self,mere, foetus, log):
+    def analyse_donnees(self,mere, foetus, pere, log):
         """ Analyze data
             For one couple lignes mother/fetus, informative character and conclusion is set
         
@@ -120,24 +141,40 @@ class Echantillon:
                 - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers )
 
             """
-
-        concordance = 0
-        log = log + "\n\nVérification concordance des ADNs..............................\n"
+        concordance_mf = 0
+        concordance_pf = None
+        if len(pere) != 0:
+            concordance_pf = 0
+            log = log + "Père détecté.................................\n"
+            log = log + "\n\nVérification concordance des ADNs entre père et foetus..............................\n"
+            for Alleles in range(len(foetus)):
+                for Allele_Foe in range(3):
+                    if foetus[Alleles].allele[Allele_Foe] in pere[Alleles].allele:
+                        if foetus[Alleles].allele[Allele_Foe] != 0.0:
+                            pere[Alleles].concordance_pere_foetus = "OUI"
+                            concordance_pf = concordance_pf + 1
+                            log = log + "Concordance pour marqueur " + str(foetus[Alleles].marqueur) + " OK..................\n"
+                            break
+                        else:
+                            pere[Alleles].concordance_pere_foetus = "NON"
+                            log = log + "Concordance pour marqueur " + foetus[Alleles].marqueur + " PAS OK..............\n"
+                            break
+        log = log + "\n\nVérification concordance des ADNs entre mère et foetus..............................\n"
         for Alleles in range(len(foetus)):
             for Allele_Foe in range(3):
                 if foetus[Alleles].allele[Allele_Foe] in mere[Alleles].allele:
                     if foetus[Alleles].allele[Allele_Foe] != 0.0:
-                        foetus[Alleles].concordance_marqueur = "OUI"
-                        concordance = concordance + 1
+                        foetus[Alleles].concordance_mere_foetus = "OUI"
+                        concordance_mf = concordance_mf + 1
                         log = log + "Concordance pour marqueur " + str(foetus[Alleles].marqueur) + " OK..................\n"
                         break
                     else:
-                        foetus[Alleles].concordance_marqueur = "NON"
+                        foetus[Alleles].concordance_mere_foetus = "NON"
                         log = log + "Concordance pour marqueur " + foetus[Alleles].marqueur + " PAS OK..............\n"
                         break
         log = log + "Vérification concordance des ADns terminée..................................\n\n\n"
-        if concordance != len(foetus):
-            resultats, conclusion = self.resultat(concordance,foetus, mere)
+        if concordance_mf != len(foetus):
+            resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
             log = log + "Concordance des ADNs PAS OK....................\n"
             log = log + "Erreur dans l'échantillon...................\n"
             log = log + "Revérifier s'il vous plaît.............\n"
@@ -209,10 +246,10 @@ class Echantillon:
             self.conclusion_echantillon(foetus)
             log = log + "Calcul échantillon terminé.....\n"
             log = log + "Fin de traitement...........\n"
-            resultats, conclusion = self.resultat(concordance,foetus,mere)
+            resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus,mere, pere)
             return resultats, conclusion, log
 
-    def resultat(self,concordance,liste_F, liste_M):
+    def resultat(self,concordance_mf, concordance_pf, liste_F, liste_M, liste_P):
         """ Set informative character and conclusion for each marker using code tables
                 Code tables are :
 
@@ -229,7 +266,7 @@ class Echantillon:
 
                 Samle conclusion code :
                     0 : not contaminated
-                    1 : contaminted
+                    1 : contaminated
 
             Parameters :
                 - concordance (int) : DNAs matching markers between mother and fetus
@@ -239,8 +276,8 @@ class Echantillon:
                 - first one containing information about Name, Conclusion and Details for each marker
                 - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers)
 
-         """
-        resultat = {"Marqueur":[],"Conclusion": [],"Concordance":[], "Détails":[]}
+        """
+        resultat = {"Marqueur":[],"Conclusion": [],"Concordance Mere/Foetus":[],"Détails M/F":[],"Concordance Pere/Foetus":[], "Détails P/F":[]}
         marqueurs_conta = 0
         marqueurs_non_conta = 0
         somme_conta = 0
@@ -248,56 +285,132 @@ class Echantillon:
             self.set_sexe("F")
         else:
             self.set_sexe("M")
-        if concordance != 16:
-            self.set_concordance("NON")
+        if concordance_mf != 16 and concordance_pf != 16:
+            self.set_concordance_mere_foet("NON")
+            self.set_concordance_pere_foet("NON")
             del resultat["Conclusion"]
             for nbres in range(1,len(liste_F)):
                 resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
-                resultat["Concordance"].append(liste_F[nbres].concordance_marqueur)
-                if liste_F[nbres].concordance_marqueur == "NON":
-                    resultat["Détails"].append("Allèles mères : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(liste_M[nbres].allele))
+                resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
+                resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
+                if liste_F[nbres].concordance_mere_foetus == "NON" and liste_P[nbres].concordance_pere_foetus == "NON":
+                    resultat["Détails M/F"].append("Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                    resultat["Détails P/F"].append("Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                elif liste_F[nbres].concordance_mere_foetus == "NON":
+                    resultat["Détails M/F"].append("Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                    resultat["Détails P/F"].append("")
+                elif liste_P[nbres].concordance_pere_foetus == "NON":
+                    resultat["Détails P/F"].append("Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                    resultat["Détails M/F"].append("")
                 else:
-                    resultat["Détails"].append("")
-
-                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé"]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
-                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance", "Détails"])
+                    resultat["Détails M/F"].append("")
+                    resultat["Détails P/F"].append("")
+                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
+                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus","Détails M/F", "Concordance Pere/Foetus", "Détails P/F"])
             return resultats, conclusion
-        else:
-            self.set_concordance("OUI")
-            del resultat["Concordance"]
+        elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F) or concordance_mf != len(liste_F) and concordance_pf == None:
+            self.set_concordance_mere_foet("NON")
+            self.set_concordance_pere_foet("OUI")
+            if concordance_pf == None:
+                self.set_concordance_pere_foet("ABS")
+            del resultat["Conclusion"]
+            del resultat["Concordance Pere/Foetus"]
+            del resultat["Détails P/F"]
+            for nbres in range(1,len(liste_F)):
+                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
+                if liste_F[nbres].concordance_mere_foetus == "NON":
+                    resultat["Détails M/F"].append("Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                else:
+                    resultat["Détails M/F"].append("")
+                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
+                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F"])
+            return resultats, conclusion
+        elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) or concordance_mf == len(liste_F) and concordance_pf == None:
+            self.set_concordance_mere_foet("OUI")
+            self.set_concordance_pere_foet("OUI")
+            if concordance_pf == None:
+                self.set_concordance_pere_foet("ABS")
+            del resultat["Concordance Mere/Foetus"]
+            del resultat["Concordance Pere/Foetus"]
+            del resultat["Détails P/F"]
             for nbres in range(1,len(liste_F)):
                 resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                 if liste_F[nbres].informatif == 0:
                     resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails"].append("Mère homozygote")
+                    resultat["Détails M/F"].append("Mère homozygote")
                 elif liste_F[nbres].informatif == 1:
                     if liste_F[nbres].contamination == 0:
                         marqueurs_non_conta+=1
                         resultat["Conclusion"].append("Non contaminé")
-                        resultat["Détails"].append("")   
+                        resultat["Détails M/F"].append("")   
                     elif liste_F[nbres].contamination == 1:
                         marqueurs_conta+=1
                         somme_conta = somme_conta + liste_F[nbres].taux
                         resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     else:
                         marqueurs_conta+=1
                         somme_conta = somme_conta + liste_F[nbres].taux
                         resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                 elif liste_F[nbres].informatif == 2:
                     resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails"].append("Allèles semblables")
+                    resultat["Détails M/F"].append("Allèles semblables")
                 else:
                     resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails"].append("Echo")
-            resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails"])
+                    resultat["Détails M/F"].append("Echo")
+            resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails M/F"])
             try :
                 moyenne_conta = somme_conta / marqueurs_conta
             except ZeroDivisionError:
                 moyenne_conta = 0
-            conclusion = pd.DataFrame({"1": [marqueurs_non_conta,marqueurs_conta,moyenne_conta]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination"])
+            conclusion = pd.DataFrame({"1": [int(marqueurs_non_conta),int(marqueurs_conta),round(moyenne_conta,2),self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
             return resultats,conclusion
+        elif concordance_mf == len(liste_F) and concordance_pf != len(liste_F):
+            self.set_concordance_mere_foet("OUI")
+            self.set_concordance_pere_foet("NON")
+            del resultat["Concordance Mere/Foetus"]
+            for nbres in range(1,len(liste_F)):
+                resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
+                if liste_P[nbres].concordance_pere_foetus == "NON":
+                    resultat["Détails P/F"].append("Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(liste_F[nbres].allele))
+                else:
+                    resultat["Détails P/F"].append("")
+            for nbres in range(1,len(liste_F)):
+                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                if liste_F[nbres].informatif == 0:
+                    resultat["Conclusion"].append("Non informatif")
+                    resultat["Détails M/F"].append("Mère homozygote")
+                elif liste_F[nbres].informatif == 1:
+                    if liste_F[nbres].contamination == 0:
+                        marqueurs_non_conta+=1
+                        resultat["Conclusion"].append("Non contaminé")
+                        resultat["Détails M/F"].append("")   
+                    elif liste_F[nbres].contamination == 1:
+                        marqueurs_conta+=1
+                        somme_conta = somme_conta + liste_F[nbres].taux
+                        resultat["Conclusion"].append("Contaminé")
+                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                    else:
+                        marqueurs_conta+=1
+                        somme_conta = somme_conta + liste_F[nbres].taux
+                        resultat["Conclusion"].append("Contaminé")
+                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                elif liste_F[nbres].informatif == 2:
+                    resultat["Conclusion"].append("Non informatif")
+                    resultat["Détails M/F"].append("Allèles semblables")
+                else:
+                    resultat["Conclusion"].append("Non informatif")
+                    resultat["Détails M/F"].append("Echo")
+            resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails M/F", "Concordance Pere/Foetus", "Détails P/F"])
+            try :
+                moyenne_conta = somme_conta / marqueurs_conta
+            except ZeroDivisionError:
+                moyenne_conta = 0
+            conclusion = pd.DataFrame({"1": [int(marqueurs_non_conta),int(marqueurs_conta),round(moyenne_conta,2),self.get_date()]},index = ["Nombre de marqueurs informatifs non contaminés","Nombre de marqueurs informatifs contaminés","Moyenne du pourcentage de contamination","Date"])
+            return resultats,conclusion
+
 
     def conclusion_echantillon(self,liste_foetus):
         """ This concludes about sample contamination or not.
@@ -308,7 +421,7 @@ class Echantillon:
 
             Parameters :
                 liste_foetus (list) : contains fetus lines from txt file
-         """
+        """
         compteur = 0
         for lignes in range(1,len(liste_foetus)):
             if liste_foetus[lignes].contamination != 0 and liste_foetus[lignes].taux > self.seuil_taux_conta:
@@ -327,7 +440,7 @@ class Patient:
             allele (list) : alleles list
             hauteur (list) : alleles height list
             informatif (int) : informatif character of marker
-     """
+    """
 
     def __init__(self, marqueur, allele, hauteur, informatif):
         """ The constructor for Patient class
@@ -337,7 +450,7 @@ class Patient:
             allele (list) : alleles list
             hauteur (list) : alleles height list
             informatif (int) : informatif character of marker
-         """
+        """
 
         self.marqueur = marqueur
         self.allele = allele
@@ -352,7 +465,7 @@ class Patient:
                 - mere (list) : mere class object
 
             If Similarite is equal to two, informative code is set to 2.
-         """
+        """
         Similarite = 0
         for Allele in range(3):
             if self.allele[Allele] in mere.allele and self.allele[Allele] != 0.0:
@@ -369,7 +482,7 @@ class Patient:
 
             If a stutter is detected, fetus informative code is set to 3.
 
-         """
+        """
         Allele_semblable = 0
         for Allele in range(3):
             if self.allele[Allele] in foetus.allele and self.allele[Allele] != 0.0:
@@ -392,14 +505,14 @@ class Mere(Patient):
 
         Attributes :
             homozygote (boolean) : set to True if the mother is homozygous for the marker studied
-     """
+    """
 
     def __init__(self, marqueur, allele, hauteur, informatif, homozygote):
         """ The constructor for Mere class
 
             Parameters :
                 - homozygote (boolean) : set to True if the mother is homozygous for the marker studied
-         """
+        """
 
         super().__init__(marqueur, allele, hauteur, informatif)
         self.homozygote = homozygote
@@ -407,7 +520,7 @@ class Mere(Patient):
     def homozygotie(self):
         """ Detect if the mother is homozygous for the marker stutied.
             If it's true, homozygote is set to True
-         """
+        """
         if self.allele[1] == 0.0:
             self.homozygote = True
 
@@ -419,27 +532,31 @@ class Foetus(Patient):
         Attributes :
             - contamination (int) : 0 if the marker is not contaminated. 1 if it is.
             - taux (int) : value corresponding to the contamination
-     """
+    """
 
-    def __init__(self, marqueur, allele, hauteur, concordance_marqueur, informatif, contamination,taux):
+    def __init__(self, marqueur, allele, hauteur, concordance_mere_foetus, informatif, num_foetus,contamination,taux):
         """ The constructor for Mere class
 
             Parameters :
                 - contamination (int) : 0 if the marker is not contaminated. 1 if it is.
                 - taux (int) : value corresponding to the contamination
-         """
+        """
 
         super().__init__(marqueur, allele, hauteur, informatif)
+        self.num_foetus = num_foetus
         self.contamination = contamination
         self.taux = taux
-        self.concordance_marqueur = concordance_marqueur
+        self.concordance_mere_foetus = concordance_mere_foetus
+
+    def get_num_foetus(self):
+        return self.num_foetus
 
     def foetus_pics(self):
         """ Count spikes number (alleles number)
 
             Return :
                 Spikes number
-         """
+        """
         pic = 0
         if 0.0 not in self.allele:
             self.contamination = 2
@@ -457,7 +574,7 @@ class Foetus(Patient):
                 - mere (list) : list of Mere object corresponding to each line of the mother extracted from the txt file
 
             Set taux attribute to value computed.
-         """
+        """
         hauteur_allele_contaminant = 99999999999999999.0
         hauteur_allele_different = None
         taux_contamination = 0
@@ -478,7 +595,7 @@ class Foetus(Patient):
 
             If the marker is contaminated, contamination code is set to 1 and informative code is set to 1 too.
             Set taux attribute to value computed.
-         """
+        """
         seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 1
@@ -493,7 +610,7 @@ class Foetus(Patient):
                 - echantillon : Echantillon object
 
             Set taux attribute to value computed.
-         """
+        """
         seuil = echantillon.get_seuil_hauteur()
         if self.hauteur[1] < self.hauteur[0] * seuil:
             allele_contaminant = 1
@@ -509,10 +626,15 @@ class Pere(Patient):
     """ Exclusive informations about the father. Pere class inherits from Patient.
 
         Do not implemented because mother and fetus are enough to conclude.
-     """
+    """
 
-    def __init__(self, marqueur, allele, hauteur, informatif):
+    def __init__(self, marqueur, allele, hauteur, informatif,num_pere,concordance_pere_foetus):
         super().__init__(marqueur, allele, hauteur,informatif)
+        self.num_pere = num_pere
+        self.concordance_pere_foetus = concordance_pere_foetus
+
+    def get_num_pere(self):
+        return self.num_pere
 
 def lecture_fichier(path_data_frame):
     """ Read file corresponding to path_data_frame.
@@ -527,7 +649,7 @@ def lecture_fichier(path_data_frame):
         Donnees_Foetus (list) : list of Foetus object corresponding to each line of the fetus extracted from the txt file
         Donnees_Pere (list) : list of Pere object corresponding to each line of the father extracted from the txt file
         Echantillon_F : Echantillon object to summerize the file
-     """
+    """
     logger = logging.getLogger('Lecture du fichier')
     log = "#### DPNMaker 1.0..............\n### Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou\n#### Date : 1 avril 2019\n\n"
     log = log + "Ouverture du fichier.......................................\n"
@@ -540,21 +662,25 @@ def lecture_fichier(path_data_frame):
     Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
     if (Donnees.shape[0] > 32):
         Iterateur = 3
+        num_pere = Donnees["Sample Name"].values[2]
     Allele_na = Donnees[["Allele 1", "Allele 2", "Allele 3"]].values
     Hauteur_na = Donnees[["Height 1", "Height 2", "Height 3"]].values
+    Date_echantillon = re.search("(\d{4}-\d{2}-\d{2})",Donnees["Sample File"].values[0]).group()
+    Nom_echantillon = Donnees["Sample Name"].values[0]
+    num_foetus = Donnees["Sample Name"].values[1]
     Allele, Hauteur, log = homogeneite_type(Allele_na, Hauteur_na,log)
     for ligne in range(0, Donnees.shape[0] - 1, Iterateur):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
-                 Hauteur[ligne], None, None)
+                Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, None, None)
+                Hauteur[ligne + 1], None, None,num_foetus, None, None)
         if (Iterateur == 3):
-            P = Patient(Donnees["Marker"][ligne],
-                        Allele[ligne + 2], Hauteur[ligne + 2], None)
+            P = Pere(Donnees["Marker"][ligne],
+                        Allele[ligne + 2], Hauteur[ligne + 2], None,num_pere,None)
             Donnees_Pere.append(P)
         Donnees_Mere.append(M)
         Donnees_Foetus.append(F)
-    Echantillon_F = Echantillon(F)
+    Echantillon_F = Echantillon(Date_echantillon,Nom_echantillon,F)
     log = log + "Donnees chargees.......................................\n"
     return Donnees_Mere, Donnees_Foetus, Donnees_Pere,Echantillon_F, log
 
@@ -569,7 +695,7 @@ def homogeneite_type(list_allele, list_hauteur, log):
         Return :
             - Allele (list) : converted values
             - Hauteur (list) : converted values
-     """
+    """
     log = log + "Normalisation des données..........................\n"
     iteration = 2
     Allele = []
@@ -594,8 +720,7 @@ def homogeneite_type(list_allele, list_hauteur, log):
     return Allele, Hauteur, log
         
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
-    resultats, conclusion, log = Echantillon_F.analyse_donnees(M,F,log)
+    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
+    resultats, conclusion, log = Echantillon_F.analyse_donnees(M,F,P,log)
     print(resultats)
     print(conclusion)
-    #print(log)
