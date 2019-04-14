@@ -528,7 +528,7 @@ if __name__ == "__main__":
     date="01/01/1999"
     Sexe="I"
     path=""
-    choix_utilisateur=1
+    choix_utilisateur=0
     seuil_pic = 42
     seuil_marqueur = 42
     creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur)
