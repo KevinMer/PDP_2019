@@ -28,10 +28,13 @@ ScreenManagement:
 
                     text: "Ouvrir un fichier"
                     font_size: "40sp"
+
                     on_release: root.manager.current = 'ecran_principale'
+                    on_press:root.show_load()
 <EcranFct>:
     name: 'ecran_principale'
     EcranFctMethod:
+        id:ecranMethod
 
 
 <EcranFctMethod>
@@ -161,16 +164,8 @@ ScreenManagement:
             TableOnglets:
                 id:les_onglets
                 do_default_tab: False
-                TabbedPanelItem:
-                    text: 'Analyse 1'
-                    Label:
 
 
-                        font_size: "15sp"
-                        text_size: self.height, None
-                        id:corps_de_text
-                        #color: [256, 256, 256, 1]
-                        text: ecranfct.corps
 
         
 
@@ -269,6 +264,18 @@ ScreenManagement:
             Button:
                 text: "Valider"
                 on_release: root.fermeture_parametres()
+
+#<ResAnalyse>:
+
+   # Label:
+        #corps:""
+         #font_size: "15sp"
+                       # text_size: self.height, None
+                        #id:corps_de_text
+                        ##color: [256, 256, 256, 1]
+                        #text: self.corps
+
+
 
 
 

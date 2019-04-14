@@ -24,6 +24,7 @@ from kivy.core.window import Window
 from kivy.uix.dropdown import DropDown
 from kivy.uix.textinput import TextInput
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.tabbedpanel import TabbedPanel
 
 
@@ -60,12 +61,17 @@ class TableOnglets(TabbedPanel):
     pass
 
 class EcranPremier(Screen):
-    pass
+    def show_load(self):
+
+        self.manager.get_screen('ecran_principale').ids.ecranMethod.show_load()
+
+
 
 
 class EcranFct(Screen):
     pass
-
+#class ResAnalyse(Boxlayout):
+   # pass
 
 class EcranFctMethod(GridLayout):
     loadfile = ObjectProperty(None)
@@ -82,14 +88,17 @@ class EcranFctMethod(GridLayout):
         
     def load(self, path, filename):
         donnees = pd.read_table(os.path.join(path, filename[0]),sep = '\t',header = 0)
-        self.titre = "Echantillon: " + donnees["Sample Name"][1]
+        self.titre = "Resultat"
         #print(donnees)
 
         M, F, P, Echantillon_F = Traitement_1.lecture_fichier(os.path.join(path, filename[0]))
-        print(os.path.join(path, filename[0]))
-
+        #print(os.path.join(path, filename[0]))
+        #self.corps = Traitement_1.traitement_donnees(M, F, Echantillon_F)
+        nv_onglets= TabbedPanelHeader(text=str(donnees["Sample Name"][1]))
+        nv_onglets.content=Label(text="Echantillon: " + donnees["Sample Name"][1]+"\n"+"\n"+Traitement_1.traitement_donnees(M, F, Echantillon_F))
+        self.ids.les_onglets.add_widget(nv_onglets)
         self.dismiss_popup()
-        self.corps = Traitement_1.traitement_donnees(M, F, Echantillon_F)
+
 
     def show_save(self):
         content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
