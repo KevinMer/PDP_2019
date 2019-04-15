@@ -14,7 +14,7 @@ def get_date(det_dataframe):
     date=det_dataframe['1'][3]
     return date
 
-def get_concordance(dataframe):
+def get_concordance(dataframe,presence_pere):
     Concordance_mf="OUI"
     Concordance_pf="OUI"
     for name in dataframe:
@@ -22,7 +22,8 @@ def get_concordance(dataframe):
             Concordance_mf="NON"
         if name == 'Concordance Pere/Foetus':
             Concordance_pf="NON"
-            
+    if presence_pere == "ABS":
+        Concordance_pf = "ABS"
     return Concordance_mf, Concordance_pf
     
 def get_info(det_dataframe):
@@ -44,7 +45,7 @@ def get_contamination(choix_utilisateur):
         Contamination="Indéterminée"
     return Contamination
 
-def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur):
+def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur,presence_pere):
     nom=nom_projet
     nb_mere=nom_fichier_mere
     nb_foetus=nom_fichier_foetus
@@ -52,7 +53,7 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
     date=get_date(det_dataframe)
     Sexe=Sexe
     nb_info_Nconta,nb_info_Conta,moy_conta=get_info(det_dataframe)
-    Concordance_mf, Concordance_pf=get_concordance(dataframe)
+    Concordance_mf, Concordance_pf=get_concordance(dataframe,presence_pere)
     Contamination=get_contamination(choix_utilisateur)#conta de l'échantillon global
     return nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta
 
@@ -66,7 +67,8 @@ def init_pdf(path):
     return canv
 
 
-'''Création table'''
+'''Mise en page'''
+
 def titre(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
@@ -89,7 +91,16 @@ def diagnos(mot):
         return Paragraph("<para align=center spaceb=3><font size=12><font color=red>"+mot+"</font></font></para>",style)
     else:
         return Paragraph("<para align=center spaceb=3><font size=12>"+mot+"</font></para>",style)
-    
+
+def posinega(mot):
+    if mot=="OUI" or mot=="L'échantillon n'est pas contaminé (conclusion automatique)" or mot=="L'échantillon n'est pas contaminé (conclusion modifié manuellement)":
+        mot = "<font color=green>"+mot+"</font>"
+    else:
+        mot = "<font color=red>"+mot+"</font>"
+    return mot
+
+'''Création des flowables et définition du style graphique sauf pour tableau central'''
+
 def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID):
 
     styles = getSampleStyleSheet()
@@ -144,7 +155,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
 
 
     if Concordance_mf=="OUI": 
-        if Concordance_pf=="OUI":
+        if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
             data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","",""],
                      ["",colonne("Informativités"),colonne("Résultats"),colonne("Pourcentages de contamination"),colonne("Détails")],
                      [titre("CSF1PO"),"","","",""],
@@ -182,7 +193,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
                      [titre("vWA"),"","","","","","",""]]
         
     else: 
-        if Concordance_pf=="OUI":
+        if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
            data = [ [colonne("Marqueurs"),colonne("Concordances des \nADN maternelles et fœtal"),colonne("Détails allèle mère"),colonne("Détails allèle fœtus")],
                      [titre("CSF1PO"),"","",""],
                      [titre("D13S317"),"","",""],
@@ -220,8 +231,8 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
 
              
     return CHU_HEADER,HEADER,data
-    
-'''Remplissage avec Analyse(Part2)'''
+
+'''Affichage des allèles lors d'absencde de concordance'''
 
 def profil_allelique(string):
     alleles_f=""
@@ -238,7 +249,8 @@ def profil_allelique(string):
                 else:
                     alleles_f=alleles_f+string[j]
     return alleles_p,alleles_f
-
+  
+'''Remplissage du tableau principal avec Analyse'''
     
 def resultats(data,dataframe,Concordance_mf, Concordance_pf):
     if Concordance_mf=="OUI":
@@ -306,7 +318,7 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                 else:
                     data[marqueurs][5], data[marqueurs][6] = " / "," / "
                 
-'''Définition tableau dans le pdf'''
+'''Définition du style graphique du tableau principal'''
 
 def style_result(data,Concordance_mf, Concordance_pf):
     t = Table(data)
@@ -358,12 +370,6 @@ def style_result(data,Concordance_mf, Concordance_pf):
 
 '''Placement table et paragraphes dans PDF'''
 
-def posinega(mot):
-    if mot=="OUI" or mot=="L'échantillon n'est pas contaminé (conclusion automatique)" or mot=="L'échantillon n'est pas contaminé (conclusion modifié manuellement)":
-        mot = "<font color=green>"+mot+"</font>"
-    else:
-        mot = "<font color=red>"+mot+"</font>"
-    return mot
 
 def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur):
 
@@ -399,20 +405,19 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
     P_nom.drawOn(canv, 300,aH-h)
     
     aH = aH - h
+    w, h = P_no_mere.wrap(aW,aH)
+    P_no_mere.drawOn(canv, 90,aH-h)
+    
     w, h = P_no_foetus.wrap(aW,aH)
-    P_no_foetus.drawOn(canv, 90,aH-h)
+    P_no_foetus.drawOn(canv, 300,aH-h)
     
     w, h = P_no_pere.wrap(aW,aH)
-    P_no_pere.drawOn(canv, 300,aH-h)
-    
-    w, h = P_no_mere.wrap(aW,aH)
-    P_no_mere.drawOn(canv, 490,aH-h)
+    P_no_pere.drawOn(canv, 490,aH-h)
     
     aH = aH - h
     w, h = P_date.wrap(aW,aH)
     P_date.drawOn(canv, 90,aH-h)
     
-
     
     if Concordance_mf=="OUI":#tableau principal
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
@@ -488,19 +493,20 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
 
 
 
-def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur,seuil_pic, seuil_marqueur):
+def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur,seuil_pic, seuil_marqueur,presence_pere):
     '''
     Input: 
       nom_projet (string) : Name of the project
       nom_fichier_mere (string) : ID number of the mother
       nom_fichier_foetus (string) : ID number of the foetus
-      nom_fichier_pere (string) : ID number of the father
+      nom_fichier_pere (string) : ID number of the father or None if he is absent
       Sexe (string) : Sexe of the foetus
       dataframe (dataframe) : Results for each marker
       det_dataframe (dataframe) : Global conclusion fo the sample and date of the run
       choix_utilisateur (int) : Code that give the global conclusion with or without the input of the user
       seuil_pic (int) : Threshold used to decide if a signal should be considered as a contamination
       seuil_marqueur (int) : Threshold used to decide the minimal number of contaminated marker needed to conclude on a contamination 
+      presence_pere (string) : give the presence or absence of the father in the file
     Function: Creates a PDF according to the parameters given, in the directory gave by path
     Output: None
     '''
@@ -510,7 +516,7 @@ def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_p
     ID_laboratoire = "EN_LAB_16_1718"
     ID = "02"
     
-    nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta= def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur)
+    nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta= def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur,presence_pere)
     
     canv = init_pdf(path)
     
@@ -537,5 +543,6 @@ if __name__ == "__main__":
     choix_utilisateur=0
     seuil_pic = 42
     seuil_marqueur = 42
-    creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur)
+    presence_pere = "ABS"
+    creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur,presence_pere)
 
