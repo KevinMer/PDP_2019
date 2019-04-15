@@ -60,9 +60,9 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
 '''Création feuille  pdf'''
 
 
-def init_pdf(path):
+def init_pdf(path,filename):
 
-    canv = Canvas(path+"Résultat.pdf", pagesize=landscape(A4))
+    canv = Canvas(path+filename+".pdf", pagesize=landscape(A4))
     
     return canv
 
@@ -518,7 +518,7 @@ def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_p
     
     nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta= def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur,presence_pere)
     
-    canv = init_pdf(path)
+    canv = init_pdf(path,nom_projet)
     
     CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID)
 
