@@ -38,7 +38,7 @@ def get_contamination(choix_utilisateur):
         Contamination="L'échantillon est contaminé (conclusion automatique)"
     elif choix_utilisateur==2:
         Contamination="L'échantillon n'est pas contaminé (conclusion modifié manuellement)"
-    elif choix_utilisateur==1:
+    elif choix_utilisateur==3:
         Contamination="L'échantillon est contaminé (conclusion modifié manuellement)"
     else:
         Contamination="Indéterminée"
@@ -60,8 +60,6 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
 
 
 def init_pdf(path):
-    styles = getSampleStyleSheet()
-    style = styles["BodyText"]
 
     canv = Canvas(path+"Résultat.pdf", pagesize=landscape(A4))
     
@@ -92,7 +90,7 @@ def diagnos(mot):
     else:
         return Paragraph("<para align=center spaceb=3><font size=12>"+mot+"</font></para>",style)
     
-def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur):
+def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID):
 
     styles = getSampleStyleSheet()
     style = styles["Normal"]
@@ -106,13 +104,15 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur):
     LOGO.drawHeight = 1.25*cm*LOGO.drawHeight / LOGO.drawWidth
     LOGO.drawWidth = 1.25*cm
 
-    entite = Paragraph("<font size=12><b>Entité d'application :</b>  -  - SEQUENCEUR</font>",style)
-    emetteur = Paragraph("<font size=12><b>Emetteur  :</b>  PBP -  - </font>",style)
-    nb_lab = Paragraph("<font size=12><b>EN_LAB_16_1718</b></font>",style)
-    index = Paragraph("<font size=12>Ind : 02</font>",style)
+    
+    
+    entite = Paragraph("<font size=12><b>Entité d'application :</b> "+Entite_d_Application+"</font>",style)
+    emetteur = Paragraph("<font size=12><b>Emetteur  :</b>"+Emetteur+" </font>",style)
+    nb_lab = Paragraph("<font size=12><b>"+ID_laboratoire+"</b></font>",style)
+    index = Paragraph("<font size=12>Ind : "+ID+"</font>",style)
     doc = Paragraph("<para align=center spaceb=3><font size=12>DOCUMENT D’ENREGISTREMENT</font></para>",style)
     page = Paragraph("<font size=12>Page : 1/1</font>",style)
-    chu_titre = Paragraph("<para align=center spaceb=3><b><font size=16><font color=white>Feuille de résultats Recherche de contamination maternelle Kit PowerPlex 16 ® </font></font></b></para>",style)
+    chu_titre = Paragraph("<para align=center spaceb=3><b><font size=16><font color=white>Feuille de résultats Recherche de contamination maternelle Kit PowerPlex 16 ® </font></font></b></para>",styles["Title"])
 
     chu_tab = [[CHU,[entite,emetteur],"","","","","","","","","","",[nb_lab,index]],
                ["",doc,"","","","","","","","","","",page],
@@ -436,7 +436,7 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
 
     
     C = Paragraph("<font size=12><font color=darkblue><b><u>Conclusion</u></b></font></font>",style)
-    Par = Paragraph("<font size=12><font color=darkblue><b><u>Paramètres</u></b></font></font>",style)
+    Par = Paragraph("<font size=12><font color=darkblue><u>Paramètres</u></font></font>",style)
     
     aH = aH - h
     w, h = C.wrap(aW, aH)
@@ -448,12 +448,12 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
 
     P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+posinega(Concordance_pf)+"</font>",style)
     P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+posinega(Concordance_mf)+"</font>",style)
-    P_nb_Nconta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs non contaminées : </b></font>"+str(nb_info_Nconta)+"</font>",style)
-    P_nb_conta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs contaminés : </b></font>"+str(nb_info_Conta)+"</font>",style)
+    P_nb_Nconta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs non contaminés : </b></font><font color=green>"+str(nb_info_Nconta)+"</font></font>",style)
+    P_nb_conta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs contaminés : </b></font><font color=red>"+str(nb_info_Conta)+"</font></font>",style)
     P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font></b>"+str(moy_conta)+"</font>",style)
     P_conta_echantillon = Paragraph("<font size=12><font color=darkblue><b>Contamination : "+posinega(Contamination)+"</b></font></font>",style)
-    P_seuil_m = Paragraph("<font size=12><font color=darkblue><b>Seuil minimum de marqueur : </b></font>"+str(seuil_marqueur)+"</font>",style)
-    P_seuil_h = Paragraph("<font size=12><font color=darkblue><b>Seuil de hauteur d'un pic: </b></font>"+str(seuil_pic)+"</font>",style)
+    P_seuil_m = Paragraph("<font size=12><font color=darkblue>Seuil minimum de marqueur : </font>"+str(seuil_marqueur)+"</font>",style)
+    P_seuil_h = Paragraph("<font size=12><font color=darkblue>Seuil de hauteur d'un pic: </font>"+str(seuil_pic)+"</font>",style)
     
 
     aH = aH - (h+5)
@@ -504,11 +504,17 @@ def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_p
     Function: Creates a PDF according to the parameters given, in the directory gave by path
     Output: None
     '''
+
+    Entite_d_Application=  "-  - SEQUENCEUR"
+    Emetteur = "  PBP -  -"
+    ID_laboratoire = "EN_LAB_16_1718"
+    ID = "02"
+    
     nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta= def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur)
     
     canv = init_pdf(path)
     
-    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur)
+    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID)
 
     resultats(data,dataframe,Concordance_mf, Concordance_pf)
 
@@ -518,7 +524,7 @@ def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_p
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
     dataframe, det_dataframe, log = Echantillon_F.analyse_donnees(M,F,P,log)
     nom_projet="projet"
     nom_fichier_mere="mere"

@@ -720,7 +720,7 @@ def homogeneite_type(list_allele, list_hauteur, log):
     return Allele, Hauteur, log
         
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
     resultats, conclusion, log = Echantillon_F.analyse_donnees(M,F,P,log)
     print(resultats)
     print(conclusion)
