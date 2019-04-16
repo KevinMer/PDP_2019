@@ -4,68 +4,121 @@
 Root:
     spacing: 10
     padding: 10
-    cols: 2
-    rows: 6
-    titre: ""
-
-    BoxLayout:
-        spacing: 10
-        padding: 10
-        orientation: 'horizontal'
-        height: 100
-        dropdown1: dropdown1.__self__
-        
-        Button:
-            id:bbbttn
-            text: "Fichier"
-            font_size: "30sp"
-            on_parent: dropdown1.dismiss()
-            on_release: dropdown1.open(self)
-
-            DropDown:    
-                id: dropdown1
-
-                Button:
-                    id:bouton_ouvrir
-                    text: 'Ouvrir'
-                    size_hint_y: None
-                    on_release: root.show_load()
-                Button:
-                    id: bouton_sauvegarder
-                    text: 'Sauvegarder Log'
-                    size_hint_y: None
-                Button:
-                    id:boutton_quitter
-                    text: 'Quitter'
-
-                    size_hint_y: None
-                    on_release: root.quitter()
-
-        Button:
-            text: "Affichage"
-            font_size: "30sp"
-        Button:
-            text: "Options"
-            font_size: "30sp"
+    cols: 1
+    rows: 3
+    titre: "Echantillon"
+    corps:"Blbablalbabb"
     BoxLayout:
         
-    BoxLayout:
         
-        id:bl_titre
-        orientation:'horizontal'
+        size_hint_y:  0.1
+    
         BoxLayout:
+            
+            
+            orientation: 'horizontal'
+            height: 100
+            dropdown1: dropdown1.__self__
+            
+            Button:
+                id:bbbttn
+                text: "Fichier"
+                font_size: "15sp"
+                on_parent: dropdown1.dismiss()
+                on_release: dropdown1.open(self)
 
-        
-        Label:
-            id: titre_echantillon
-            font_size: "30sp"
-            color: [256, 256, 256, 1]
-            text: root.titre
+                DropDown:    
+                    id: dropdown1
+
+                    Button:
+                        id:bouton_ouvrir
+                        text: 'Ouvrir'
+                        size_hint_y: None
+                        on_release: root.show_load()
+                    Button:
+                        id: bouton_sauvegarder
+                        text: 'Sauvegarder Log'
+                        size_hint_y: None
+                        on_release: root.show_save()
+                    Button:
+                        id:boutton_quitter
+                        text: 'Quitter'
+
+                        size_hint_y: None
+                        on_release: root.quitter()
+
+            Button:
+                text: "Affichage"
+                font_size: "15sp"
+            Button:
+                text: "Options"
+                font_size: "15sp"
+        BoxLayout:
             
     BoxLayout:
+        size_hint_y:  0.2
+        BoxLayout:
+            
+            BoxLayout:
+
+            Label:
+                id: label_apercu
+                font_size: "30sp"
+                color: [256, 256, 256, 1]
+                text: 'Aperçu'
+                
+        
+            
+        BoxLayout:
+            
+            id:bl_titre
+            orientation:'horizontal'
+            Label:
+                id: titre_echantillon
+                font_size: "30sp"
+                color: [256, 256, 256, 1]
+                text: root.titre
+            BoxLayout:  
     BoxLayout:
-    BoxLayout:
-    BoxLayout:
+        
+        BoxLayout:
+            padding :20
+            size_hint_x:  0.2
+            orientation: 'vertical'
+
+            BoxLayout:
+                spacing: 20 
+                orientation: 'vertical'
+                Button:
+                    
+                    text: 'Comparaison'
+                    
+                        
+                Button:
+                    background_normal: ''
+                    background_color: 0,0,255,1
+                        
+                        
+                    text: 'Algorithme \n        de \n traitement'
+                    
+                        
+            BoxLayout:
+                    
+        
+        BoxLayout:
+            canvas:
+                Color:
+                    rgba: 193, 66, 66, 1
+        
+            Label:
+                
+                
+                font_size: "15sp"
+                text_size: self.height, None
+                id:corps_de_text
+                color: [256, 256, 256, 1]
+                text: root.corps
+    
    
 
 <LoadDialog>:
@@ -90,3 +143,30 @@ Root:
                 on_release: root.load(filechooser.path, filechooser.selection)
                 
 
+<SaveDialog>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            on_selection: text_input.text = self.selection and self.selection[0] or ''
+            path: "./"
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.save(filechooser.path, text_input.text)

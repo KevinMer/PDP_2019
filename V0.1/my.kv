@@ -1,0 +1,281 @@
+#:kivy 1.10.1
+
+#version application 0.2
+ScreenManagement:
+    
+    EcranPremier:
+    EcranFct:
+    
+    
+<EcranPremier>:
+    BoxLayout:
+        orientation: 'horizontal'
+
+        Image:
+            source:"logo.png"
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                text:"Bienvenue! \n   Veuillez ouvrir un fichier \n       pour commencer"
+                font_size: "40sp"
+                color: [256, 256, 256, 1]
+            BoxLayout:
+                spacing: 10
+                padding: 100
+                Button:
+
+                    text: "Ouvrir un fichier"
+                    font_size: "40sp"
+
+                    on_release: root.manager.current = 'ecran_principale'
+                    on_press:root.show_load()
+<EcranFct>:
+    name: 'ecran_principale'
+    EcranFctMethod:
+        id:ecranMethod
+
+
+<EcranFctMethod>
+
+    id: ecranfct
+    spacing: 10
+    padding: 10
+    cols: 1
+    rows: 3
+    titre: "Echantillon"
+    corps:""
+
+
+    BoxLayout:
+
+
+        size_hint_y:  0.1
+
+        BoxLayout:
+
+            orientation: 'horizontal'
+            height: 10
+            dropdown1: dropdown1.__self__
+            dropdown2: dropdown2.__self__
+
+            Button:
+                id:bouton_fichier
+                text: "Fichier"
+                font_size: "15sp"
+                on_parent: dropdown1.dismiss()
+                on_release: dropdown1.open(self)
+
+                DropDown:
+                    id: dropdown1
+
+                    Button:
+                        id:bouton_ouvrir
+                        text: 'Ouvrir'
+                        size_hint_y: None
+                        on_release: ecranfct.show_load()
+                    Button:
+                        id: bouton_sauvegarder
+                        text: 'Sauvegarder resultats'
+                        size_hint_y: None
+                        on_release: ecranfct.show_save()
+                    Button:
+                        id:boutton_quitter
+                        text: 'Quitter'
+
+                        size_hint_y: None
+                        on_release: ecranfct.quitter()
+
+            Button:
+                text: "Affichage"
+                font_size: "15sp"
+            Button:
+                id:bouton_option
+                text: "Options"
+                font_size: "15sp"
+                on_parent: dropdown2.dismiss()
+                on_release: dropdown2.open(self)
+
+                DropDown:
+                    id: dropdown2
+
+                    Button:
+
+                        text: 'Parametres'
+                        size_hint_y: None
+                        on_release: ecranfct.ouverture_parametres()
+                    Button:
+
+                        text: 'Documentation'
+                        size_hint_y: None
+
+
+
+        BoxLayout:
+
+
+    BoxLayout:
+        size_hint_y:  0.2
+        BoxLayout:
+
+            BoxLayout:
+
+                BoxLayout:
+
+                BoxLayout:
+
+
+
+            BoxLayout:
+
+                id:bl_titre
+                orientation:'horizontal'
+                Label:
+                    id: titre_echantillon
+                    font_size: "30sp"
+                    color: [256, 256, 256, 1]
+                    text: ecranfct.titre
+                BoxLayout:
+                    padding: 45
+                    Button:
+                        text: "Log"
+    BoxLayout:
+
+        BoxLayout:
+            padding :20
+            size_hint_x:  0.2
+            orientation: 'vertical'
+
+            BoxLayout:
+                spacing: 20
+                orientation: 'vertical'
+                #Button:
+
+                    #text: 'Comparaison'
+
+
+
+
+            BoxLayout:
+
+
+        BoxLayout:
+            TableOnglets:
+                id:les_onglets
+                do_default_tab: False
+
+
+
+        
+
+
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            path: './'
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Annuler"
+                on_release: root.cancel()
+               
+
+            Button:
+                text: "Ouvrir"
+                on_release: root.load(filechooser.path, filechooser.selection)
+                
+
+<SaveDialog>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            on_selection: text_input.text = self.selection and self.selection[0] or ''
+            path: "./"
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Annuler"
+                on_release: root.cancel()
+
+            Button:
+                text: "Sauvegarder"
+                on_release: root.save(filechooser.path, text_input.text)
+
+
+<ParametreDialog>:
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        BoxLayout:
+            Label:
+                id: lab_premier_para
+                text: "Seuil pour le nombre de marqueurs"
+            TextInput:
+                id: text_input1_para
+                size_hint_y: None
+
+                multiline: False
+        BoxLayout:
+            Label:
+                id: lab_deuxieme_para
+                text: "Seuil pour le taux de contamination"
+            TextInput:
+                id: text_input2_par
+                size_hint_y: None
+
+                multiline: False
+        BoxLayout:
+            Label:
+                id:lab_troisieme_para
+                text: "Seuil pour la hauteur des pics"
+            TextInput:
+                id: text_input3_para
+                size_hint_y: None
+
+                multiline: False
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Annuler"
+                on_release: root.cancel()
+
+            Button:
+                text: "Valider"
+                on_release: root.fermeture_parametres()
+
+#<ResAnalyse>:
+
+   # Label:
+        #corps:""
+         #font_size: "15sp"
+                       # text_size: self.height, None
+                        #id:corps_de_text
+                        ##color: [256, 256, 256, 1]
+                        #text: self.corps
+
+
+
+
+

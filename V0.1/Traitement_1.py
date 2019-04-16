@@ -92,10 +92,11 @@ class Mere(Patient):
 
 class Foetus(Patient):
 
-    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux):
+    def __init__(self, marqueur, allele, hauteur, informatif, contamination,taux,sexe):
         super().__init__(marqueur, allele, hauteur, informatif)
         self.contamination = contamination
         self.taux = taux
+        self.sexe = sexe
 
     def foetus_pics(self):
         #Entree : une ligne du foetus
@@ -157,43 +158,39 @@ class Pere(Patient):
         super().__init__(marqueur, allele, hauteur,informatif)
 
 
-def ecriture_log(concordance,liste_F,echantillon):
+def resultat(concordance,liste_F,echantillon):
     #Entree : le resultat de la concordance, une liste contenant toutes les lignes du foetus
     #Ecrit dans un fichier texte la conclusion pour chaque marqueur respectif
     #Ne renvoie rien
-    Log = open("Log.txt", "w")
-    Log.write("DPN3000\njeudi 21 Mars\nVersion 1.0\nEchantillon")
+    affichage = ""
     if concordance == 16:
-        Log.write("Concordance OK\n")
+        affichage = affichage + "Concordance OK\n"
     else:
-        Log.write("Concordance PAS OK")
-        Log.close()
-    for nbres in range(len(liste_F)):
-        if F[nbres].informatif == 0:
-            Log.write("Le marqueur {} est NON INFORMATIF car la mère est homozygote.".format(F[nbres].marqueur))
-            Log.write("\n")
-        elif F[nbres].informatif == 1:
-            if F[nbres].contamination == 0:
-                Log.write("Le marqueur {} est NON CONTAMINE".format(F[nbres].marqueur))
-                Log.write("\n")
-            elif F[nbres].contamination == 1:
-                Log.write("Le marqueur {} est HMZ CONTAMINE à hauteur de {} %".format(F[nbres].marqueur,F[nbres].taux))
-                Log.write("\n")
+        affichage = affichage + "Concordance PAS OK\n"
+        return affichage
+    if liste_F[0].sexe == "F":
+        affichage = affichage + "Le foetus est de sexe féminin\n"
+    else:
+        affichage = affichage + "Le foetus est de sexe masculin\n"
+    for nbres in range(1,len(liste_F)):
+        if liste_F[nbres].informatif == 0:
+            affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est NON INFORMATIF car la mère est homozygote\n"
+        elif liste_F[nbres].informatif == 1:
+            if liste_F[nbres].contamination == 0:
+                affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est NON CONTAMINE\n"
+            elif liste_F[nbres].contamination == 1:
+                affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est HMZ CONTAMINE à hauteur de " + str(liste_F[nbres].taux) + "%\n"
             else:
-                Log.write("Le marqueur {} est HTZ CONTAMINE à hauteur de {} %".format(F[nbres].marqueur,F[nbres].taux))
-                Log.write("\n")
-        elif F[nbres].informatif == 2:
-            Log.write("Le marqueur {} est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.".format(F[nbres].marqueur))
-            Log.write("\n")
+                affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est HTZ CONTAMINE à hauteur de " + str(liste_F[nbres].taux) + "%\n"
+        elif liste_F[nbres].informatif == 2:
+            affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est NON INFORMATIF car le foetus et la mère possèdent les mêmes allèles.\n"
         else:
-            Log.write("Le marqueur {} est NON INFORMATIF car dans l'écho".format(F[nbres].marqueur))
-            Log.write("\n")
+            affichage = affichage + "Le marqueur " + str(liste_F[nbres].marqueur) + " est NON INFORMATIF car dans l'écho\n"
     if echantillon.conclusion == 0:
-        Log.write("L'échantillon est contaminé")
+        affichage = affichage + "L'échantillon est contaminé\n"
     else:
-        Log.write("L'échantillon n'est pas contaminé")
-    Log.write("Processus achevé.")
-    Log.close()
+        affichage = affichage + "L'échantillon n'est pas contaminé\n"
+    return affichage
 #CODE Infor:
 # 0 Mere HMZ
 # 1 Informatif
@@ -220,7 +217,7 @@ def lecture_fichier(path_data_frame):
     Donnees_Mere = []
     Donnees_Foetus = []
     Donnees_Pere = []
-    Donnees_na = pd.read_table(path_data_frame, sep='\t', header=0)
+    Donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
     Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
     if (Donnees.shape[0] > 32):
         Iterateur = 3
@@ -231,7 +228,7 @@ def lecture_fichier(path_data_frame):
         M = Mere(Donnees["Marker"][ligne], Allele[ligne],
                  Hauteur[ligne], None, None)
         F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, None)
+                   Hauteur[ligne + 1], None, None, None,None)
         if (Iterateur == 3):
             P = Patient(Donnees["Marker"][ligne],
                         Allele[ligne + 2], Hauteur[ligne + 2], None)
@@ -289,6 +286,8 @@ def traitement_donnees(mere,foetus,echantillon):
     if concordance != 16:
         return
     else:
+        if foetus[0].allele[1] == 0.0:
+            foetus[0].sexe = "F"
         for nbre_lignes in range(1,len(mere)):
             pic = foetus[nbre_lignes].foetus_pics()
             mere[nbre_lignes].homozygotie()
@@ -316,7 +315,8 @@ def traitement_donnees(mere,foetus,echantillon):
                     foetus[nbre_lignes].informatif = 1
                     foetus[nbre_lignes].contamination = 0
     echantillon.conclusion_echantillon(foetus)
-    ecriture_log(concordance,foetus,echantillon)
+    concl = resultat(concordance,foetus,echantillon)
+    return concl
         
 
 #CODE Informatif:
@@ -334,7 +334,7 @@ def traitement_donnees(mere,foetus,echantillon):
 
 
 if __name__ == "__main__":
-    #M, F, P = lecture_fichier("pp16-dmpk-crampe-050219_PP16.txt")
+    #M, F, P = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
     M, F, P, Echantillon_F = lecture_fichier("2018-03-27 foetus 90-10_PP16.txt")
-    traitement_donnees(M,F,Echantillon_F)
-    print(F[1].taux)
+    concl = traitement_donnees(M,F,Echantillon_F)
+    print(concl)
