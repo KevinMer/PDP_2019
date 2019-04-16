@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from Traitement3 import*
 
+import os
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4,landscape
 from reportlab.platypus import Image, Table, TableStyle, Paragraph
@@ -107,11 +108,11 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
     style = styles["Normal"]
 
 
-    CHU = Image('image.D7ADZZ.png')
+    CHU = Image(os.path.join('logo_chu.png'))
     CHU.drawHeight = 3.18*cm*CHU.drawHeight / CHU.drawWidth
     CHU.drawWidth = 3.25*cm
 
-    LOGO = Image('logo.png')
+    LOGO = Image(os.path.join('logo.png'))
     LOGO.drawHeight = 1.25*cm*LOGO.drawHeight / LOGO.drawWidth
     LOGO.drawWidth = 1.25*cm
 
@@ -332,7 +333,7 @@ def style_result(data,Concordance_mf, Concordance_pf):
                                    ('VALIGN',(0,1),(4,1),'MIDDLE'),
                                    ('VALIGN',(0,0),(0,1),'MIDDLE'),
                                    ('VALIGN',(1,0),(1,1),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(5,2),colors.HexColor(0x66a3ff)),
+                                   ('BACKGROUND',(0,0),(5,2),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
         else:
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
@@ -343,7 +344,7 @@ def style_result(data,Concordance_mf, Concordance_pf):
                                    ('VALIGN',(0,1),(4,1),'MIDDLE'),
                                    ('VALIGN',(0,0),(0,1),'MIDDLE'),
                                    ('VALIGN',(1,0),(1,1),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(7,2),colors.HexColor(0x66a3ff)),
+                                   ('BACKGROUND',(0,0),(7,2),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003380))]))
     else:
         alternance=range(1,len(data))
@@ -351,20 +352,20 @@ def style_result(data,Concordance_mf, Concordance_pf):
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('ALIGN',(0,0),(-1,-1),'CENTER'),
                                    ('VALIGN',(0,0),(-1,0),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(3,0),colors.HexColor(0x66a3ff)),
+                                   ('BACKGROUND',(0,0),(3,0),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
         else:
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('ALIGN',(0,0),(-1,-1),'CENTER'),
                                    ('VALIGN',(0,0),(-1,0),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(6,0),colors.HexColor(0x66a3ff)),
+                                   ('BACKGROUND',(0,0),(6,0),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
 
     for ligne in alternance:
         if ligne % 2 == 0:
             bg_color = colors.white
         else:
-            bg_color = colors.HexColor(0xcce0ff)
+            bg_color = colors.HexColor(0xd1e6fa)
         t.setStyle(TableStyle([('BACKGROUND', (0, ligne), (-1, ligne), bg_color)]))
     return t
 
@@ -493,9 +494,10 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
 
 
 
-def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur,seuil_pic, seuil_marqueur,presence_pere):
+def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur,seuil_pic, seuil_marqueur,presence_pere):
     '''
     Input: 
+      path : path to the directory to create the pdf
       nom_projet (string) : Name of the project
       nom_fichier_mere (string) : ID number of the mother
       nom_fichier_foetus (string) : ID number of the foetus
@@ -530,7 +532,8 @@ def creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_p
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier("181985_xfra_ja_200618_PP16.txt")
+    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
+    path = ""
     dataframe, det_dataframe, log = Echantillon_F.analyse_donnees(M,F,P,log)
     nom_projet="projet"
     nom_fichier_mere="mere"
@@ -544,5 +547,5 @@ if __name__ == "__main__":
     seuil_pic = 42
     seuil_marqueur = 42
     presence_pere = "ABS"
-    creation_PDF(nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur,presence_pere)
+    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur,presence_pere)
 
