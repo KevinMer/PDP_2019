@@ -33,20 +33,20 @@ def get_info(det_dataframe):
     moy_conta = det_dataframe['1'][2]
     return nb_info_Nconta,nb_info_Conta,moy_conta
 
-def get_contamination(choix_utilisateur):
+def get_contamination(choix_utilisateur, nom_utilisateur):
     if choix_utilisateur==0:
         Contamination="L'échantillon n'est pas contaminé (conclusion automatique)"
     elif choix_utilisateur==1:
         Contamination="L'échantillon est contaminé (conclusion automatique)"
     elif choix_utilisateur==2:
-        Contamination="L'échantillon n'est pas contaminé (conclusion modifié manuellement)"
+        Contamination="L'échantillon n'est pas contaminé (conclusion modifié manuellement par "+nom_utilisateur+")"
     elif choix_utilisateur==3:
-        Contamination="L'échantillon est contaminé (conclusion modifié manuellement)"
+        Contamination="L'échantillon est contaminé (conclusion modifié manuellement par "+nom_utilisateur+")"
     else:
         Contamination="Indéterminée"
     return Contamination
 
-def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur,presence_pere):
+def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur, nom_utilisateur, presence_pere):
     nom=nom_projet
     nb_mere=nom_fichier_mere
     nb_foetus=nom_fichier_foetus
@@ -55,15 +55,15 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
     Sexe=Sexe
     nb_info_Nconta,nb_info_Conta,moy_conta=get_info(det_dataframe)
     Concordance_mf, Concordance_pf=get_concordance(dataframe,presence_pere)
-    Contamination=get_contamination(choix_utilisateur)#conta de l'échantillon global
-    return nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta
+    Decision_contamination=get_contamination(choix_utilisateur, nom_utilisateur)
+    return nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Decision_contamination,nb_info_Nconta,nb_info_Conta,moy_conta
 
 '''Création feuille  pdf'''
 
 
-def init_pdf(path,filename):
+def init_pdf(path,filename, nom_utilisateur):
 
-    canv = Canvas(path+filename+".pdf", pagesize=landscape(A4))
+    canv = Canvas(os.path.join(path, filename+"_"+nom_utilisateur+".pdf"), pagesize=landscape(A4))
     
     return canv
 
@@ -94,15 +94,15 @@ def diagnos(mot):
         return Paragraph("<para align=center spaceb=3><font size=12>"+mot+"</font></para>",style)
 
 def posinega(mot):
-    if mot=="OUI" or mot=="L'échantillon n'est pas contaminé (conclusion automatique)" or mot=="L'échantillon n'est pas contaminé (conclusion modifié manuellement)":
-        mot = "<font color=green>"+mot+"</font>"
-    else:
-        mot = "<font color=red>"+mot+"</font>"
+    if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
+        return "<font color=green>"+mot+"</font>"
+    if mot != "ABS" and mot != "Indéterminée":
+        return "<font color=red>"+mot+"</font>"
     return mot
 
 '''Création des flowables et définition du style graphique sauf pour tableau central'''
 
-def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID):
+def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,version):
 
     styles = getSampleStyleSheet()
     style = styles["Normal"]
@@ -120,13 +120,12 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
     
     entite = Paragraph("<font size=12><b>Entité d'application :</b> "+Entite_d_Application+"</font>",style)
     emetteur = Paragraph("<font size=12><b>Emetteur  :</b>"+Emetteur+" </font>",style)
-    nb_lab = Paragraph("<font size=12><b>"+ID_laboratoire+"</b></font>",style)
-    index = Paragraph("<font size=12>Ind : "+ID+"</font>",style)
+    no_version = Paragraph("<font size=12><b>"+version+"</b></font>",style)
     doc = Paragraph("<para align=center spaceb=3><font size=12>DOCUMENT D’ENREGISTREMENT</font></para>",style)
     page = Paragraph("<font size=12>Page : 1/1</font>",style)
     chu_titre = Paragraph("<para align=center spaceb=3><b><font size=16><font color=white>Feuille de résultats Recherche de contamination maternelle Kit PowerPlex 16 ® </font></font></b></para>",styles["Title"])
 
-    chu_tab = [[CHU,[entite,emetteur],"","","","","","","","","","",[nb_lab,index]],
+    chu_tab = [[CHU,[entite,emetteur],"","","","","","","","","","",no_version],
                ["",doc,"","","","","","","","","","",page],
                [chu_titre,"","","","","","","","","","","",""]]
     CHU_HEADER = Table(chu_tab)
@@ -372,10 +371,10 @@ def style_result(data,Concordance_mf, Concordance_pf):
 '''Placement table et paragraphes dans PDF'''
 
 
-def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur):
+def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
 
     aW = 780
-    aH = 510
+    aH = 503
     
     w, h = CHU_HEADER.wrap(aW, aH)
     CHU_HEADER.drawOn(canv, 30, aH)
@@ -443,58 +442,71 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
     
     C = Paragraph("<font size=12><font color=darkblue><b><u>Conclusion</u></b></font></font>",style)
     Par = Paragraph("<font size=12><font color=darkblue><u>Paramètres</u></font></font>",style)
+    alignement_col_gauche = 20
+    alignement_col_centre = 220
+    alignement_col_droite = 605
     
     aH = aH - h
     w, h = C.wrap(aW, aH)
-    C.drawOn(canv,50, aH-h)
+    C.drawOn(canv,alignement_col_gauche, aH-h)
     
     w, h = Par.wrap(aW, aH)
-    Par.drawOn(canv,635, aH-h)
+    Par.drawOn(canv,alignement_col_droite, aH-h)
     
 
     P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+posinega(Concordance_pf)+"</font>",style)
     P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+posinega(Concordance_mf)+"</font>",style)
-    P_nb_Nconta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs non contaminés : </b></font><font color=green>"+str(nb_info_Nconta)+"</font></font>",style)
-    P_nb_conta = Paragraph("<font size=12><font color=darkblue><b>Nombre de marqueurs informatifs contaminés : </b></font><font color=red>"+str(nb_info_Conta)+"</font></font>",style)
-    P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font></b>"+str(moy_conta)+"</font>",style)
-    P_conta_echantillon = Paragraph("<font size=12><font color=darkblue><b>Contamination : "+posinega(Contamination)+"</b></font></font>",style)
+    if Concordance_mf != "NON":
+        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
+        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
+    else:
+        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font>"+str(nb_info_Nconta)+"</font></b>",style)
+        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font>"+str(nb_info_Conta)+"</font></b>",style)
+        
+    P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font>"+str(moy_conta)+"</b></font>",style)
+    P_conta_echantillon = Paragraph("<font size=12><b><font color=darkblue>Contamination : </font>"+posinega(Contamination)+"</b></font>",style)
     P_seuil_m = Paragraph("<font size=12><font color=darkblue>Seuil minimum de marqueur : </font>"+str(seuil_marqueur)+"</font>",style)
     P_seuil_h = Paragraph("<font size=12><font color=darkblue>Seuil de hauteur d'un pic: </font>"+str(seuil_pic)+"</font>",style)
+    P_seuil_p = Paragraph("<font size=12><font color=darkblue>Seuil pourcentage de contamination: </font>"+str(seuil_pourcentage)+"</font>",style)
     
 
     aH = aH - (h+5)
-    w, h = P_concordance_p.wrap(aW,aH)
-    P_concordance_p.drawOn(canv, 50,aH-h)
+    w, h = P_concordance_m.wrap(aW,aH)
+    P_concordance_m.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_nb_Nconta.wrap(aW,aH)
-    P_nb_Nconta.drawOn(canv, 250,aH-h)
+    P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
 
     w, h = P_seuil_m.wrap(aW,aH)
-    P_seuil_m.drawOn(canv, 635,aH-h)
+    P_seuil_m.drawOn(canv, alignement_col_droite,aH-h)
     
     aH = aH - (h+10)
-    w, h = P_concordance_m.wrap(aW,aH)
-    P_concordance_m.drawOn(canv, 50,aH-h)
+    if Concordance_pf != "ABS":
+        w, h = P_concordance_p.wrap(aW,aH)
+        P_concordance_p.drawOn(canv, alignement_col_gauche,aH-h)
 
     w, h = P_nb_conta.wrap(aW,aH)
-    P_nb_conta.drawOn(canv, 250,aH-(h-10))
+    P_nb_conta.drawOn(canv, alignement_col_centre,aH-(h-10))
 
     w, h =P_seuil_h.wrap(aW,aH)
-    P_seuil_h.drawOn(canv, 635,aH-(h-10))
+    P_seuil_h.drawOn(canv, alignement_col_droite,aH-(h-10))
 
     aH = aH - h
     w, h = P_moy.wrap(aW,aH)
-    P_moy.drawOn(canv, 250,aH-(h-10))
+    P_moy.drawOn(canv, alignement_col_centre,aH-(h-10))
+
+    w, h =P_seuil_p.wrap(aW,aH)
+    P_seuil_p.drawOn(canv, alignement_col_droite,aH-(h-10))
     
     aH = aH - h
     w, h = P_conta_echantillon.wrap(aW,aH)
-    P_conta_echantillon.drawOn(canv, 50,aH-h)
+    P_conta_echantillon.drawOn(canv, alignement_col_gauche,aH-h)
     
     canv.save()
 
 
 
-def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur,seuil_pic, seuil_marqueur,presence_pere):
+def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage,presence_pere,Entite_d_Application, Emetteur, version):
     '''
     Input: 
       path : path to the directory to create the pdf
@@ -513,22 +525,19 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
     Output: None
     '''
 
-    Entite_d_Application=  "-  - SEQUENCEUR"
-    Emetteur = "  PBP -  -"
-    ID_laboratoire = "EN_LAB_16_1718"
-    ID = "02"
+
     
-    nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta= def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur,presence_pere)
+    nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta = def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur, nom_utilisateur,presence_pere)
     
-    canv = init_pdf(path,nom_projet)
+    canv = init_pdf(path,nom_projet, nom_utilisateur)
     
-    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,ID_laboratoire,ID)
+    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur, Entite_d_Application,Emetteur,version)
 
     resultats(data,dataframe,Concordance_mf, Concordance_pf)
 
     t=style_result(data,Concordance_mf, Concordance_pf)
 
-    disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur)
+    disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
 
 
 if __name__ == "__main__":
@@ -543,9 +552,14 @@ if __name__ == "__main__":
     date="01/01/1999"
     Sexe="I"
     path=""
+    nom_utilisateur = "nom_prenom"
     choix_utilisateur=0
     seuil_pic = 42
-    seuil_marqueur = 42
-    presence_pere = "ABS"
-    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, seuil_pic, seuil_marqueur,presence_pere)
+    seuil_marqueur = 4
+    seuil_pourcentage = 0.42
+    presence_pere = "CACA"
+    Entite_d_Application=  "-  - SEQUENCEUR"
+    Emetteur = "  PTBM -  -"
+    version = "V.1"
+    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere,Entite_d_Application, Emetteur, version)
 
