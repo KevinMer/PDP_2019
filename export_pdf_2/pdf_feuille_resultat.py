@@ -39,9 +39,9 @@ def get_contamination(choix_utilisateur, nom_utilisateur):
     elif choix_utilisateur==1:
         Contamination="L'échantillon est contaminé (conclusion automatique)"
     elif choix_utilisateur==2:
-        Contamination="L'échantillon n'est pas contaminé (conclusion modifié manuellement par "+nom_utilisateur+")"
+        Contamination="L'échantillon n'est pas contaminé (conclusion modifiée manuellement par "+nom_utilisateur+")"
     elif choix_utilisateur==3:
-        Contamination="L'échantillon est contaminé (conclusion modifié manuellement par "+nom_utilisateur+")"
+        Contamination="L'échantillon est contaminé (conclusion modifiée manuellement par "+nom_utilisateur+")"
     else:
         Contamination="Indéterminée"
     return Contamination
@@ -61,16 +61,16 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
 '''Création feuille  pdf'''
 
 
-def init_pdf(path,filename, nom_utilisateur):
+def init_pdf(path,filename):
 
-    canv = Canvas(os.path.join(path, filename+"_"+nom_utilisateur+".pdf"), pagesize=landscape(A4))
+    canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
     
     return canv
 
 
 '''Mise en page'''
 
-def titre(mot):
+def colonne_marqueur(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
     return Paragraph("<para align=center spaceb=3><font size=12><b>"+mot+"</b></font></para>",style)
@@ -102,7 +102,20 @@ def posinega(mot):
 
 '''Création des flowables et définition du style graphique sauf pour tableau central'''
 
-def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_Application,Emetteur,version):
+def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteur,version):
+    '''input:
+    Concordance_mf (string) : consistency between the DNA of the mother and the foetus
+    Concordance_pf (string) : consistency between the DNA of the father and the foetus
+        function:
+    Create the formatted table for the header of the chu from their logo, Entite_d_Application, Emetteur and the version of the app. 
+    Create the formatted table for the title with th logo of the app
+    Create a matrix with a line for each marker, and the appropriate column dependending of the consistency of the DNA between the foetus and the mother, the father.
+        output:
+    CHU_HEADER (reportlab.platypus.tables.Table) : table containing the header of the CHU
+    HEADER (reportlab.platypus.tables.Table) : table containing the logo of the app and title
+    data (matrix) : empty table containing a line for each marker and information 
+        about contamination or consistency depending on Concordanc_mf and Concordance_pf
+    '''
 
     styles = getSampleStyleSheet()
     style = styles["Normal"]
@@ -116,7 +129,6 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
     LOGO.drawHeight = 1.25*cm*LOGO.drawHeight / LOGO.drawWidth
     LOGO.drawWidth = 1.25*cm
 
-    
     
     entite = Paragraph("<font size=12><b>Entité d'application :</b> "+Entite_d_Application+"</font>",style)
     emetteur = Paragraph("<font size=12><b>Emetteur  :</b>"+Emetteur+" </font>",style)
@@ -158,83 +170,89 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur,Entite_d_A
         if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
             data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","",""],
                      ["",colonne("Informativités"),colonne("Résultats"),colonne("Pourcentages de contamination"),colonne("Détails")],
-                     [titre("CSF1PO"),"","","",""],
-                     [titre("D13S317"),"","","",""],
-                     [titre("D16S539"),"","","",""],
-                     [titre("D18S51"),"","","",""],
-                     [titre("D21S11"),"","","",""],
-                     [titre("D3S1358"),"","","",""],
-                     [titre("D5S818"),"","","",""],
-                     [titre("D7S820"),"","","",""],
-                     [titre("D8S1179"),"","","",""],
-                     [titre("FGA"),"","","",""],
-                     [titre("Penta D"),"","","",""],
-                     [titre("Penta E"),"","","",""],
-                     [titre("THO1"),"","","",""],
-                     [titre("TPOX"),"","","",""],
-                     [titre("vWA"),"","","",""]]
+                     [colonne_marqueur("CSF1PO"),"","","",""],
+                     [colonne_marqueur("D13S317"),"","","",""],
+                     [colonne_marqueur("D16S539"),"","","",""],
+                     [colonne_marqueur("D18S51"),"","","",""],
+                     [colonne_marqueur("D21S11"),"","","",""],
+                     [colonne_marqueur("D3S1358"),"","","",""],
+                     [colonne_marqueur("D5S818"),"","","",""],
+                     [colonne_marqueur("D7S820"),"","","",""],
+                     [colonne_marqueur("D8S1179"),"","","",""],
+                     [colonne_marqueur("FGA"),"","","",""],
+                     [colonne_marqueur("Penta D"),"","","",""],
+                     [colonne_marqueur("Penta E"),"","","",""],
+                     [colonne_marqueur("THO1"),"","","",""],
+                     [colonne_marqueur("TPOX"),"","","",""],
+                     [colonne_marqueur("vWA"),"","","",""]]
         else:
             data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordances des ADN paternelles et fœtals"),"",""],
                      ["",colonne("Informativités"),colonne("Résultats"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordances Père/Fœtus"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
-                     [titre("CSF1PO"),"","","","","","",""],
-                     [titre("D13S317"),"","","","","","",""],
-                     [titre("D16S539"),"","","","","","",""],
-                     [titre("D18S51"),"","","","","","",""],
-                     [titre("D21S11"),"","","","","","",""],
-                     [titre("D3S1358"),"","","","","","",""],
-                     [titre("D5S818"),"","","","","","",""],
-                     [titre("D7S820"),"","","","","","",""],
-                     [titre("D8S1179"),"","","","","","",""],
-                     [titre("FGA"),"","","","","","",""],
-                     [titre("Penta D"),"","","","","","",""],
-                     [titre("Penta E"),"","","","","","",""],
-                     [titre("THO1"),"","","","","","",""],
-                     [titre("TPOX"),"","","","","","",""],
-                     [titre("vWA"),"","","","","","",""]]
+                     [colonne_marqueur("CSF1PO"),"","","","","","",""],
+                     [colonne_marqueur("D13S317"),"","","","","","",""],
+                     [colonne_marqueur("D16S539"),"","","","","","",""],
+                     [colonne_marqueur("D18S51"),"","","","","","",""],
+                     [colonne_marqueur("D21S11"),"","","","","","",""],
+                     [colonne_marqueur("D3S1358"),"","","","","","",""],
+                     [colonne_marqueur("D5S818"),"","","","","","",""],
+                     [colonne_marqueur("D7S820"),"","","","","","",""],
+                     [colonne_marqueur("D8S1179"),"","","","","","",""],
+                     [colonne_marqueur("FGA"),"","","","","","",""],
+                     [colonne_marqueur("Penta D"),"","","","","","",""],
+                     [colonne_marqueur("Penta E"),"","","","","","",""],
+                     [colonne_marqueur("THO1"),"","","","","","",""],
+                     [colonne_marqueur("TPOX"),"","","","","","",""],
+                     [colonne_marqueur("vWA"),"","","","","","",""]]
         
     else: 
         if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
            data = [ [colonne("Marqueurs"),colonne("Concordances des \nADN maternelles et fœtal"),colonne("Détails allèle mère"),colonne("Détails allèle fœtus")],
-                     [titre("CSF1PO"),"","",""],
-                     [titre("D13S317"),"","",""],
-                     [titre("D16S539"),"","",""],
-                     [titre("D18S51"),"","",""],
-                     [titre("D21S11"),"","",""],
-                     [titre("D3S1358"),"","",""],
-                     [titre("D5S818"),"","",""],
-                     [titre("D7S820"),"","",""],
-                     [titre("D8S1179"),"","",""],
-                     [titre("FGA"),"","",""],
-                     [titre("Penta D"),"","",""],
-                     [titre("Penta E"),"","",""],
-                     [titre("THO1"),"","",""],
-                     [titre("TPOX"),"","",""],
-                     [titre("vWA"),"","",""]]
+                     [colonne_marqueur("CSF1PO"),"","",""],
+                     [colonne_marqueur("D13S317"),"","",""],
+                     [colonne_marqueur("D16S539"),"","",""],
+                     [colonne_marqueur("D18S51"),"","",""],
+                     [colonne_marqueur("D21S11"),"","",""],
+                     [colonne_marqueur("D3S1358"),"","",""],
+                     [colonne_marqueur("D5S818"),"","",""],
+                     [colonne_marqueur("D7S820"),"","",""],
+                     [colonne_marqueur("D8S1179"),"","",""],
+                     [colonne_marqueur("FGA"),"","",""],
+                     [colonne_marqueur("Penta D"),"","",""],
+                     [colonne_marqueur("Penta E"),"","",""],
+                     [colonne_marqueur("THO1"),"","",""],
+                     [colonne_marqueur("TPOX"),"","",""],
+                     [colonne_marqueur("vWA"),"","",""]]
         else:
              data = [ [colonne("Marqueurs"),colonne("Concordances des\n ADN maternelles et fœtals"),colonne("Détails allèles mère"),colonne("Détails allèles fœtus"),colonne("Concordances des \nADN paternelles et fœtals"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
-                     [titre("CSF1PO"),"","","","","",""],
-                     [titre("D13S317"),"","","","","",""],
-                     [titre("D16S539"),"","","","","",""],
-                     [titre("D18S51"),"","","","","",""],
-                     [titre("D21S11"),"","","","","",""],
-                     [titre("D3S1358"),"","","","","",""],
-                     [titre("D5S818"),"","","","","",""],
-                     [titre("D7S820"),"","","","","",""],
-                     [titre("D8S1179"),"","","","","",""],
-                     [titre("FGA"),"","","","","",""],
-                     [titre("Penta D"),"","","","","",""],
-                     [titre("Penta E"),"","","","","",""],
-                     [titre("THO1"),"","","","","",""],
-                     [titre("TPOX"),"","","","","",""],
-                     [titre("vWA"),"","","","","",""]]
+                     [colonne_marqueur("CSF1PO"),"","","","","",""],
+                     [colonne_marqueur("D13S317"),"","","","","",""],
+                     [colonne_marqueur("D16S539"),"","","","","",""],
+                     [colonne_marqueur("D18S51"),"","","","","",""],
+                     [colonne_marqueur("D21S11"),"","","","","",""],
+                     [colonne_marqueur("D3S1358"),"","","","","",""],
+                     [colonne_marqueur("D5S818"),"","","","","",""],
+                     [colonne_marqueur("D7S820"),"","","","","",""],
+                     [colonne_marqueur("D8S1179"),"","","","","",""],
+                     [colonne_marqueur("FGA"),"","","","","",""],
+                     [colonne_marqueur("Penta D"),"","","","","",""],
+                     [colonne_marqueur("Penta E"),"","","","","",""],
+                     [colonne_marqueur("THO1"),"","","","","",""],
+                     [colonne_marqueur("TPOX"),"","","","","",""],
+                     [colonne_marqueur("vWA"),"","","","","",""]]
              
-
              
     return CHU_HEADER,HEADER,data
 
 '''Affichage des allèles lors d'absencde de concordance'''
 
 def profil_allelique(string):
+    '''input:
+    string : contains the allelic profile of the parent and the foetus
+       function : seperate into two variable the alleles of each individual
+       output:
+    alleles_p (string) : alleles of the parent
+    alleles_f (string) : alleles of the foetus
+    '''
     alleles_f=""
     alleles_p=""
     nb_allele=0
@@ -253,6 +271,16 @@ def profil_allelique(string):
 '''Remplissage du tableau principal avec Analyse'''
     
 def resultats(data,dataframe,Concordance_mf, Concordance_pf):
+    '''input:
+    data (matrix) : matrix created in the function create_struct_pdf
+    dataframe (dataframe) : contains the conlusion for each markers
+    Concordance_mf (string) : consistency between the DNA of the mother and the foetus
+    Concordance_pf (string) : consistency between the DNA of the father and the foetus
+       function : 
+    Fill the matrix with the information contained in the dataframe
+       output : 
+    None
+    '''
     if Concordance_mf=="OUI":
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(2,len(data)):
@@ -321,6 +349,15 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
 '''Définition du style graphique du tableau principal'''
 
 def style_result(data,Concordance_mf, Concordance_pf):
+    '''input:
+    data (matrix) : contain the conclusion for each marker
+    Concordance_mf (string) : consistency between the DNA of the mother and the foetus
+    Concordance_pf (string) : consistency between the DNA of the father and the foetus
+       function: 
+    Transform the matrix into a table useable for reportlab and adjust the apparence of the table
+       output:
+    t (reportlab.platypus.tables.Table) : formatted table containing the conclusion for each marker
+    '''
     t = Table(data)
     if Concordance_mf=="OUI":
         alternance=range(2,len(data))
@@ -506,7 +543,7 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
 
 
 
-def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage,presence_pere,Entite_d_Application, Emetteur, version):
+def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage,presence_pere,Entite_d_Application, Emetteur, version):
     '''
     Input: 
       path : path to the directory to create the pdf
@@ -514,13 +551,19 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
       nom_fichier_mere (string) : ID number of the mother
       nom_fichier_foetus (string) : ID number of the foetus
       nom_fichier_pere (string) : ID number of the father or None if he is absent
+      nom_pdf (string) : name of the pdf
       Sexe (string) : Sexe of the foetus
       dataframe (dataframe) : Results for each marker
       det_dataframe (dataframe) : Global conclusion fo the sample and date of the run
       choix_utilisateur (int) : Code that give the global conclusion with or without the input of the user
+      nom_utilisateur (string) : Name of the user
       seuil_pic (int) : Threshold used to decide if a signal should be considered as a contamination
       seuil_marqueur (int) : Threshold used to decide the minimal number of contaminated marker needed to conclude on a contamination 
+      seuil_pourcentage (float) : Threshold for the minimal percentage to decide if a sample is contaminated as a whole
       presence_pere (string) : give the presence or absence of the father in the file
+      Entite_d_Application (string) : 
+      Emetteur (string) : 
+      version (string) : version of the software
     Function: Creates a PDF according to the parameters given, in the directory gave by path
     Output: None
     '''
@@ -529,9 +572,9 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
     
     nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta = def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur, nom_utilisateur,presence_pere)
     
-    canv = init_pdf(path,nom_projet, nom_utilisateur)
+    canv = init_pdf(path,nom_pdf)
     
-    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf,choix_utilisateur, Entite_d_Application,Emetteur,version)
+    CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf, Entite_d_Application,Emetteur,version)
 
     resultats(data,dataframe,Concordance_mf, Concordance_pf)
 
@@ -554,6 +597,7 @@ if __name__ == "__main__":
     path=""
     nom_utilisateur = "nom_prenom"
     choix_utilisateur=0
+    nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 4
     seuil_pourcentage = 0.42
@@ -561,5 +605,5 @@ if __name__ == "__main__":
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
-    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere,Entite_d_Application, Emetteur, version)
+    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere,Entite_d_Application, Emetteur, version)
 
