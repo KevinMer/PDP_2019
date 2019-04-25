@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from Traitement3 import*
 
 import os
 from reportlab.lib import colors
@@ -43,7 +42,7 @@ def get_contamination(choix_utilisateur, nom_utilisateur):
     elif choix_utilisateur==3:
         Contamination="L'échantillon est contaminé (conclusion modifiée manuellement par "+nom_utilisateur+")"
     else:
-        Contamination="Indéterminée"
+        Contamination="Analyse non réalisée"
     return Contamination
 
 def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur, nom_utilisateur, presence_pere):
@@ -96,7 +95,7 @@ def diagnos(mot):
 def posinega(mot):
     if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
         return "<font color=green>"+mot+"</font>"
-    if mot != "ABS" and mot != "Indéterminée":
+    if mot != "ABS":
         return "<font color=red>"+mot+"</font>"
     return mot
 
@@ -168,8 +167,8 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
 
     if Concordance_mf=="OUI": 
         if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
-            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","",""],
-                     ["",colonne("Informativités"),colonne("Résultats"),colonne("Pourcentages de contamination"),colonne("Détails")],
+            data = [ [colonne("Marqueur"),colonne("Contamination materno-fœtale"),"","",""],
+                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Pourcentage de contamination"),colonne("Détails")],
                      [colonne_marqueur("CSF1PO"),"","","",""],
                      [colonne_marqueur("D13S317"),"","","",""],
                      [colonne_marqueur("D16S539"),"","","",""],
@@ -186,8 +185,8 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("TPOX"),"","","",""],
                      [colonne_marqueur("vWA"),"","","",""]]
         else:
-            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordances des ADN paternelles et fœtals"),"",""],
-                     ["",colonne("Informativités"),colonne("Résultats"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordances Père/Fœtus"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
+            data = [ [colonne("Marqueur"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordance des ADN paternelles et fœtals"),"",""],
+                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordance Père/Fœtus"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
                      [colonne_marqueur("CSF1PO"),"","","","","","",""],
                      [colonne_marqueur("D13S317"),"","","","","","",""],
                      [colonne_marqueur("D16S539"),"","","","","","",""],
@@ -223,7 +222,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("TPOX"),"","",""],
                      [colonne_marqueur("vWA"),"","",""]]
         else:
-             data = [ [colonne("Marqueurs"),colonne("Concordances des\n ADN maternelles et fœtals"),colonne("Détails allèles mère"),colonne("Détails allèles fœtus"),colonne("Concordances des \nADN paternelles et fœtals"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
+             data = [ [colonne("Marqueur"),colonne("Concordance des\n ADN maternelles et fœtals"),colonne("Détails allèles mère"),colonne("Détails allèles fœtus"),colonne("Concordance des \nADN paternelles et fœtals"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
                      [colonne_marqueur("CSF1PO"),"","","","","",""],
                      [colonne_marqueur("D13S317"),"","","","","",""],
                      [colonne_marqueur("D16S539"),"","","","","",""],
@@ -408,16 +407,16 @@ def style_result(data,Concordance_mf, Concordance_pf):
 '''Placement table et paragraphes dans PDF'''
 
 
-def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
+def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
 
     aW = 780
-    aH = 503
+    aH = 500
     
     w, h = CHU_HEADER.wrap(aW, aH)
     CHU_HEADER.drawOn(canv, 30, aH)
     
     aW = 780
-    aH = 455
+    aH = 450
     
     w, h = HEADER.wrap(aW, aH)
 
@@ -427,33 +426,37 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
     
+    P_date = Paragraph("<font size=12><font color=darkblue>Date du run : </font>"+date+"</font>",style)
+    P_nom = Paragraph("<font size=12><font color=darkblue>Nom du projet : </font>"+nom+"</font>",style)
+    P_utilisateur = Paragraph("<font size=12><font color=darkblue>Utilisateur : </font>"+nom_utilisateur+"</font>",style)
     P_sexe = Paragraph("<font size=12><font color=darkblue>Sexe du foetus : </font>"+Sexe+"</font>",style)
     P_no_foetus = Paragraph("<font size=12><font color=darkblue>N° du fœtus : </font>"+nb_foetus+"</font>",style)
     P_no_mere = Paragraph("<font size=12><font color=darkblue>N° de la mère : </font>"+nb_mere+"</font>",style)
     P_no_pere = Paragraph("<font size=12><font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
-    P_date = Paragraph("<font size=12><font color=darkblue>Date du run : </font>"+date+"</font>",style)
-    P_nom = Paragraph("<font size=12><font color=darkblue>Nom du projet : </font>"+nom+"</font>",style)
 
-    aH = aH - 5
-    w, h = P_sexe.wrap(aW,aH)
-    P_sexe.drawOn(canv, 90,aH-h)
+    aH = aH - 10
+    w, h = P_date.wrap(aW,aH)
+    P_date.drawOn(canv, 90,aH-h)
     
     w, h = P_nom.wrap(aW,aH)
     P_nom.drawOn(canv, 300,aH-h)
+
+    w, h =P_utilisateur.wrap(aW,aH)
+    P_utilisateur.drawOn(canv,490,aH-h)
     
     aH = aH - h
-    w, h = P_no_mere.wrap(aW,aH)
-    P_no_mere.drawOn(canv, 90,aH-h)
     
     w, h = P_no_foetus.wrap(aW,aH)
-    P_no_foetus.drawOn(canv, 300,aH-h)
+    P_no_foetus.drawOn(canv, 90,aH-h)
+    
+    w, h = P_sexe.wrap(aW,aH)
+    P_sexe.drawOn(canv, 300,aH-h)
+    
+    w, h = P_no_mere.wrap(aW,aH)
+    P_no_mere.drawOn(canv, 490,aH-h)
     
     w, h = P_no_pere.wrap(aW,aH)
-    P_no_pere.drawOn(canv, 490,aH-h)
-    
-    aH = aH - h
-    w, h = P_date.wrap(aW,aH)
-    P_date.drawOn(canv, 90,aH-h)
+    P_no_pere.drawOn(canv, 680,aH-h)
     
     
     if Concordance_mf=="OUI":#tableau principal
@@ -496,11 +499,12 @@ def disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Cont
     if Concordance_mf != "NON":
         P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
         P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
+        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font>"+str(moy_conta)+"</b></font>",style)
     else:
-        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font>"+str(nb_info_Nconta)+"</font></b>",style)
-        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font>"+str(nb_info_Conta)+"</font></b>",style)
+        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font><font color=red>"+str(nb_info_Nconta)+"</font></font></b>",style)
+        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
+        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font><font color=red>"+str(moy_conta)+"</font></b></font>",style)
         
-    P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font>"+str(moy_conta)+"</b></font>",style)
     P_conta_echantillon = Paragraph("<font size=12><b><font color=darkblue>Contamination : </font>"+posinega(Contamination)+"</b></font>",style)
     P_seuil_m = Paragraph("<font size=12><font color=darkblue>Seuil minimum de marqueur : </font>"+str(seuil_marqueur)+"</font>",style)
     P_seuil_h = Paragraph("<font size=12><font color=darkblue>Seuil de hauteur d'un pic: </font>"+str(seuil_pic)+"</font>",style)
@@ -580,23 +584,25 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
 
     t=style_result(data,Concordance_mf, Concordance_pf)
 
-    disposition_pdf(CHU_HEADER,HEADER,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
+    disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
 
 
 if __name__ == "__main__":
+    from Traitement3 import*
+
     M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
     path = ""
     dataframe, det_dataframe, log = Echantillon_F.analyse_donnees(M,F,P,log)
-    nom_projet="projet"
-    nom_fichier_mere="mere"
-    nom_fichier_foetus="foetus"
-    nom_fichier_pere="pere"
+    nom_projet="Projet"
+    nom_fichier_mere="Mere"
+    nom_fichier_foetus="Foetus"
+    nom_fichier_pere="Pere"
     nom_fichier="fichier"
     date="01/01/1999"
     Sexe="I"
     path=""
-    nom_utilisateur = "nom_prenom"
-    choix_utilisateur=0
+    nom_utilisateur = "nom prenom"
+    choix_utilisateur=8
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 4
