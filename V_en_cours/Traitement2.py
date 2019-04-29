@@ -28,7 +28,7 @@ class Echantillon:
     """
 
     def __init__(self, date, name, liste_lignes, sexe=None, concordance_mere_foet=None, concordance_pere_foet=None,
-                 seuil_nbre_marqueurs=2, seuil_taux_conta=0.05, seuil_hauteur=1 / 3, conclusion=None):
+                 seuil_nbre_marqueurs=2, seuil_taux_conta=5, seuil_hauteur=1 / 3, conclusion=None):
         """ The constructor for Echantillon class
 
         Parameters:
@@ -293,7 +293,7 @@ class Echantillon:
             self.set_sexe("F")
         else:
             self.set_sexe("M")
-        if concordance_mf != 16 and concordance_pf != 16:
+        if concordance_mf != 16 and concordance_pf != 16 and concordance_pf != None:
             self.set_concordance_mere_foet("NON")
             self.set_concordance_pere_foet("NON")
             del resultat["Conclusion"]
@@ -303,20 +303,20 @@ class Echantillon:
                 resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
                 if liste_F[nbres].concordance_mere_foetus == "NON" and liste_P[nbres].concordance_pere_foetus == "NON":
                     resultat["Détails M/F"].append(
-                        "Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "M : " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
+                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
                     resultat["Détails P/F"].append(
-                        "Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "P : " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F : " + str(
+                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
                 elif liste_F[nbres].concordance_mere_foetus == "NON":
                     resultat["Détails M/F"].append(
-                        "Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F : " + str(
+                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
                     resultat["Détails P/F"].append("")
                 elif liste_P[nbres].concordance_pere_foetus == "NON":
                     resultat["Détails P/F"].append(
-                        "Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(
+                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
                     resultat["Détails M/F"].append("")
                 else:
                     resultat["Détails M/F"].append("")
@@ -342,8 +342,8 @@ class Echantillon:
                 resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
                 if liste_F[nbres].concordance_mere_foetus == "NON":
                     resultat["Détails M/F"].append(
-                        "Allèles mère : " + str(liste_M[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
+                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
                 else:
                     resultat["Détails M/F"].append("")
                 conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
@@ -405,8 +405,7 @@ class Echantillon:
                 resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
                 if liste_P[nbres].concordance_pere_foetus == "NON":
                     resultat["Détails P/F"].append(
-                        "Allèles père : " + str(liste_P[nbres].allele) + " Allèles foetus : " + str(
-                            liste_F[nbres].allele))
+                        "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)))
                 else:
                     resultat["Détails P/F"].append("")
             for nbres in range(1, len(liste_F)):
@@ -466,7 +465,6 @@ class Echantillon:
             self.conclusion = 1
         else:
             self.conclusion = 0
-
 
 class Patient:
     """ Common informations between mother and fetus
@@ -533,7 +531,13 @@ class Patient:
             for Alleles_foetus in range(3):
                 if foetus.allele[Alleles_foetus] - 1 == Allele_Echo:
                     foetus.informatif = 3
-
+    
+    def normalisation(self,liste_alleles):
+        liste_alleles2=[]
+        for alleles in range(len(liste_alleles)):
+            if liste_alleles[alleles] != 0.0:
+                liste_alleles2.append(liste_alleles[alleles])
+        return liste_alleles2
 
 class Mere(Patient):
     """ Exclusive informations about the mother. Mere class inherits from Patient.
@@ -756,5 +760,6 @@ def homogeneite_type(list_allele, list_hauteur, log):
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier(r'C:\Users\theo\Desktop\Projet_PDP\PDP_2019\V_en_cours\2018-03-27 foetus 90-10_PP16.txt')
+    M, F, P, Echantillon_F, log = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
     resultats, conclusion, log = Echantillon_F.analyse_donnees(M, F, P, log)
+    print(Echantillon_F.get_conclusion())
