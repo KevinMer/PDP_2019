@@ -185,11 +185,11 @@ class Echantillon:
                     logger.info("Mère homozygote : "f'{str(mere[nbre_lignes].homozygote)}')
                     logger.info("Vérification si mère et foetus possèdent les mêmes allèles")
                     foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
-                    logger.info("Code informatif vérification allèles semblables : "f'{str(foetus[nbre_lignes].informatif)}')
+                    logger.info("Code informatif vérification allèles semblables à la mère : "f'{str(foetus[nbre_lignes].informatif)}')
                     logger.info("Initialisation du taux de contamination pour calcul à venir")
                     logger.info("Taux initialisé")
                     foetus[nbre_lignes].taux = 0.0
-                    logger.info("Si code informatif vérification allèles semblables différent de 2, vérification écho")
+                    logger.info("Si code informatif vérification allèles semblables à la mère différent de 2, vérification écho")
                     logger.info("Si écho, affection de la valeur 3 pour code informatif")
                     if foetus[nbre_lignes].informatif != 2:
                         logger.info("Vérification si écho")
@@ -420,7 +420,7 @@ class Echantillon:
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
-                        resultat["Détails M/F"].append("Allèles semblables")
+                        resultat["Détails M/F"].append("Allèles semblables à la mère")
                     else:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
@@ -430,7 +430,7 @@ class Echantillon:
                 except ZeroDivisionError:
                     moyenne_conta = 0
                 conclusion = pd.DataFrame(
-                    {"1": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
+                    {"A": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
                     index=["Nombre de marqueurs informatifs non contaminés", "Nombre de marqueurs informatifs contaminés",
                         "Moyenne du pourcentage de contamination", "Date"])
                 return resultats, conclusion
@@ -467,7 +467,7 @@ class Echantillon:
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
-                        resultat["Détails M/F"].append("Allèles semblables")
+                        resultat["Détails M/F"].append("Allèles semblables à la mère")
                     else:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
