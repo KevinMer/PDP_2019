@@ -735,6 +735,10 @@ def lecture_fichier(path_data_frame):
     donnees_mere = []
     donnees_foetus = []
     donnees_pere = []
+    heure = datetime.now()
+    heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
+    logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
     logger.info("Ouverture du fichier")
     try:
         donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
@@ -811,9 +815,5 @@ def homogeneite_type(list_allele, list_hauteur):
 
 
 if __name__ == "__main__":
-    heure = datetime.now()
-    heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
-    logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
     M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
     resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
