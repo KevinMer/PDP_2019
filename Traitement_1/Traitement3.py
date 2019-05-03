@@ -122,7 +122,7 @@ class Echantillon:
         """
         self.conclusion = conclusion
 
-    def analyse_donnees(self, mere, foetus, pere):
+    def analyse_donnees(self, mere, foetus, pere,logger):
         """ Analyze data
             For one couple lignes mother/fetus, informative character and conclusion is set
 
@@ -241,12 +241,12 @@ class Echantillon:
                 logger.info("Détermination contamination pour échantillon terminée")
                 logger.info("Fin de traitement")
                 logger.info("Stockage des conclusions")
-                resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
+                resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere,logger)
                 return resultats, conclusion
             except Exception as e:
                 logger.error("Traitement des marqueurs impossible",exc_info=True)
 
-    def resultat(self, concordance_mf, concordance_pf, liste_F, liste_M, liste_P):
+    def resultat(self, concordance_mf, concordance_pf, liste_F, liste_M, liste_P,logger):
         """ Set informative character and conclusion for each marker using code tables
                 Code tables are :
 
@@ -717,7 +717,7 @@ class Pere(Patient):
         return self.num_pere
 
 
-def lecture_fichier(path_data_frame):
+def lecture_fichier(path_data_frame,logger):
     """ Read file corresponding to path_data_frame.
         For each line, Mere, Foetus or Pere object are created.
         At the end, one Echantillon object is created.
@@ -735,10 +735,6 @@ def lecture_fichier(path_data_frame):
     donnees_mere = []
     donnees_foetus = []
     donnees_pere = []
-    heure = datetime.now()
-    heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
-    logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
     logger.info("Ouverture du fichier")
     try:
         donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
@@ -756,7 +752,7 @@ def lecture_fichier(path_data_frame):
         date_echantillon = re.search("(\d{4}-\d{2}-\d{2})", donnees["Sample File"].values[0]).group()
         nom_echantillon = donnees["Sample Name"].values[0]
         num_foetus = donnees["Sample Name"].values[1]
-        allele, hauteur = homogeneite_type(allele_na, hauteur_na)
+        allele, hauteur = homogeneite_type(allele_na, hauteur_na,logger)
         for ligne in range(0, donnees.shape[0] - 1, iterateur):
             m = Mere(donnees["Marker"][ligne], allele[ligne],
                     hauteur[ligne], None, False)
@@ -775,7 +771,7 @@ def lecture_fichier(path_data_frame):
     return donnees_mere, donnees_foetus, donnees_pere, echantillon_f
 
 
-def homogeneite_type(list_allele, list_hauteur):
+def homogeneite_type(list_allele, list_hauteur,logger):
     """ Allow to convert string into float for Alleles and Height values in order to compute contamination.
 
         Parameters :
@@ -812,8 +808,15 @@ def homogeneite_type(list_allele, list_hauteur):
         logger.error("Homogénéisation impossible",exc_info=True)
         sys.exit()
         
+def log():
+    heure = datetime.now()
+    heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
+    logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+    return logger
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
-    resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
+    logger = log()
+    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt',logger)
+    resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P,logger)
