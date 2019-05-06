@@ -1,16 +1,16 @@
 import pandas as pd
 import numpy as np
 import logging
+import sys
 from datetime import datetime
 from time import strftime
 import re
 
-
-# heure = datetime.now()
-# heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
-# logging.basicConfig(filename='app.log', filemode='w',format='%(levelname)s:%(message)s', level=logging.DEBUG)
-# logging.info("################Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou################\n################DPN3000 1.0################\n################"f'{heure_vrai}################')
-# logging.warning('Lancement analyse')
+heure = datetime.now()
+heure_vrai = heure.strftime("%d-%m-%Y_%Hh_%Mm")
+logging.basicConfig(filename='log_'+heure_vrai+'.txt', filemode='w', format='%(name)s - %(levelname)s: %(message)s',
+                    level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Echantillon:
@@ -129,7 +129,7 @@ class Echantillon:
         """
         self.conclusion = conclusion
 
-    def analyse_donnees(self, mere, foetus, pere, log):
+    def analyse_donnees(self, mere, foetus, pere):
         """ Analyze data
             For one couple lignes mother/fetus, informative character and conclusion is set
 
@@ -140,121 +140,119 @@ class Echantillon:
             Return two dataframes :
                 - first one containing information about Name, Conclusion and Details for each marker
                 - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers )
-
             """
+        logger.info("Analyse des données")
+        logger.info("Vérification concordance ADN")
         concordance_mf = 0
         concordance_pf = None
-        if len(pere) != 0:
-            concordance_pf = 0
-            log = log + "Père détecté.................................\n"
-            log = log + "\n\nVérification concordance des ADNs entre père et foetus..............................\n"
-            for Alleles in range(len(foetus)):
-                for Allele_Foe in range(3):
-                    if foetus[Alleles].allele[Allele_Foe] in pere[Alleles].allele:
-                        if foetus[Alleles].allele[Allele_Foe] != 0.0:
-                            pere[Alleles].concordance_pere_foetus = "OUI"
-                            concordance_pf = concordance_pf + 1
-                            log = log + "Concordance pour marqueur " + str(
-                                foetus[Alleles].marqueur) + " OK..................\n"
+        try:
+            if len(pere) != 0:
+                logger.info("Père détecté")
+                logger.info("Vérification concordance des ADNs entre père et foetus")
+                concordance_pf = 0
+                for alleles in range(len(foetus)):
+                    for allele_foetus in range(3):
+                        if foetus[alleles].allele[allele_foetus] in pere[alleles].allele:
+                            if foetus[alleles].allele[allele_foetus] != 0.0:
+                                pere[alleles].concordance_pere_foetus = "OUI"
+                                concordance_pf = concordance_pf + 1
+                                break
+                            else:
+                                pere[alleles].concordance_pere_foetus = "NON"
+                                break
+            logger.info("Vérification concordance des ADNs entre mère et foetus")
+            for alleles in range(len(foetus)):
+                for allele_foetus in range(3):
+                    if foetus[alleles].allele[allele_foetus] in mere[alleles].allele:
+                        if foetus[alleles].allele[allele_foetus] != 0.0:
+                            foetus[alleles].concordance_mere_foetus = "OUI"
+                            concordance_mf = concordance_mf + 1
                             break
                         else:
-                            pere[Alleles].concordance_pere_foetus = "NON"
-                            log = log + "Concordance pour marqueur " + foetus[
-                                Alleles].marqueur + " PAS OK..............\n"
+                            foetus[alleles].concordance_mere_foetus = "NON"
                             break
-        log = log + "\n\nVérification concordance des ADNs entre mère et foetus..............................\n"
-        for Alleles in range(len(foetus)):
-            for Allele_Foe in range(3):
-                if foetus[Alleles].allele[Allele_Foe] in mere[Alleles].allele:
-                    if foetus[Alleles].allele[Allele_Foe] != 0.0:
-                        foetus[Alleles].concordance_mere_foetus = "OUI"
-                        concordance_mf = concordance_mf + 1
-                        log = log + "Concordance pour marqueur " + str(
-                            foetus[Alleles].marqueur) + " OK..................\n"
-                        break
-                    else:
-                        foetus[Alleles].concordance_mere_foetus = "NON"
-                        log = log + "Concordance pour marqueur " + foetus[Alleles].marqueur + " PAS OK..............\n"
-                        break
-        log = log + "Vérification concordance des ADns terminée..................................\n\n\n"
+        except Exception as e:
+            logger.error("Vérification concordance ADN impossible", exc_info=True)
+
+        logger.info("Vérification concordance des ADNs terminée")
         if concordance_mf != len(foetus):
             resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
-            log = log + "Concordance des ADNs PAS OK....................\n"
-            log = log + "Erreur dans l'échantillon...................\n"
-            log = log + "Revérifier s'il vous plaît.............\n"
-            return resultats, conclusion, log
+            return resultats, conclusion
         else:
-            log = log + "Traitement des 15 autres marqueurs..............................\n"
-            for nbre_lignes in range(1, len(mere)):
-                log = log + "Traitement du marqueur " + str(foetus[nbre_lignes].marqueur) + "..........\n"
-                pic = foetus[nbre_lignes].foetus_pics()
-                log = log + "Calcul du nombre d'allèles pour le foetus......................\n"
-                log = log + "Nombre d'allèles pour le foetus : " + str(pic) + ".........\n"
-                log = log + "Vérification de l'homozygotie de la mère......................\n"
-                mere[nbre_lignes].homozygotie()
-                log = log + "Mère homozygote : " + str(mere[nbre_lignes].homozygote) + "...............\n"
-                log = log + "Vérification mère et foetus mêmes allèles......................\n"
-                foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
-                log = log + "Code de retour vérification allèles semblables: " + str(
-                    foetus[nbre_lignes].informatif) + "...............\n"
-                log = log + "Initialisation du taux de contamination pour calcul à venir...............\n"
-                foetus[nbre_lignes].taux = 0.0
-                log = log + "Taux initialisé.................................\n"
-                log = log + "Si code informatif de retour allèles semblables différent de 2, vérification écho.............\n"
-                log = log + "Si écho, affection code informatif 3...............\n"
-                if foetus[nbre_lignes].informatif != 2:
-                    log = log + "Vérification si écho......................\n"
-                    mere[nbre_lignes].echo(foetus[nbre_lignes])
-                    log = log + "Code retour vérification écho : " + str(
-                        foetus[nbre_lignes].informatif) + "...............\n"
-                log = log + "Début chaîne de traitement...........................\n"
-                if pic == 3:
-                    log = log + "Trois allèles détectés......................\n"
-                    foetus[nbre_lignes].contamination_heterozygote(mere[nbre_lignes])
-                    log = log + "Marqueur informatif, affectation du code contamination 1..............\n"
-                    foetus[nbre_lignes].informatif = 1
-                    log = log + "Calcul taux de contamination du marqueur..........\n"
-                    foetus[nbre_lignes].contamination = 2
-                    log = log + "Calcul terminé....................\n"
-                elif mere[nbre_lignes].homozygote:
-                    log = log + "Mère homozygote.......................\n"
-                    log = log + "Marqueur non informatif, affectation du code informatif 0............\n"
-                    foetus[nbre_lignes].informatif = 0
-                elif pic == 2:
-                    log = log + "Deux allèles détectés..............\n"
-                    if foetus[nbre_lignes].informatif == 2:
-                        log = log + "Si mêmes allèles, vérification homozygote contaminé...............\n"
-                        foetus[nbre_lignes].verif_homozygote_contamine(self)
-                        if foetus[nbre_lignes].contamination == 1:
-                            log = log + "Homozygote contaminé identifié.....................\n"
-                            log = log + "Calcul du taux de contamination....................\n"
-                            foetus[nbre_lignes].homozygote_contamine(self)
-                            log = log + "Calcul du taux de contamination effectué...........\n"
-                    else:
-                        if foetus[nbre_lignes].informatif != 3:
-                            log = log + "Code calcul écho différent de 3..................\n"
-                            log = log + "Marqueur informatif, affectation du code informatif 1.............\n"
-                            foetus[nbre_lignes].informatif = 1
-                            log = log + "Marqueur non contaminé, affectation du code contamination 0................\n"
-                            foetus[nbre_lignes].contamination = 0
-                else:
-                    log = log + "Un seul allèle détecté............\n"
-                    if foetus[nbre_lignes].informatif != 3:
-                        log = log + "Code informatif différent de 3...........\n"
-                        log = log + "Marqueur informatif, affectation du code informatif 1.............\n"
+            try:
+                logger.info("Traitements des marqueurs\n")
+                for nbre_lignes in range(1, len(mere)):
+                    logger.info("Traitement du marqueur : "f'{str(foetus[nbre_lignes].marqueur)}')
+                    pic = foetus[nbre_lignes].foetus_pics()
+                    logger.info("Calcul du nombre d'allèles pour le foetus")
+                    logger.info("Nombre d'allèles pour le foetus : "f'{str(pic)}')
+                    logger.info("Vérification de l'homozygotie de la mère")
+                    mere[nbre_lignes].homozygotie()
+                    logger.info("Mère homozygote : "f'{str(mere[nbre_lignes].homozygote)}')
+                    logger.info("Vérification si mère et foetus possèdent les mêmes allèles")
+                    foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
+                    logger.info("Code informatif vérification allèles semblables à la mère : "f'{str(foetus[nbre_lignes].informatif)}')
+                    logger.info("Initialisation du taux de contamination pour calcul à venir")
+                    logger.info("Taux initialisé")
+                    foetus[nbre_lignes].taux = 0.0
+                    logger.info(
+                        "Si code informatif vérification allèles semblables à la mère différent de 2, vérification écho")
+                    logger.info("Si écho, affection de la valeur 3 pour code informatif")
+                    if foetus[nbre_lignes].informatif != 2:
+                        logger.info("Vérification si écho")
+                        mere[nbre_lignes].echo(foetus[nbre_lignes])
+                        logger.info("Code informatif pour vérification écho retourné : "f'{str(foetus[nbre_lignes].informatif)}')
+                    logger.info("Début chaîne de traitement")
+                    if pic == 3:
+                        logger.info("Trois allèles détectés")
+                        foetus[nbre_lignes].contamination_heterozygote(mere[nbre_lignes])
+                        logger.info("Marqueur informatif, affectation de la valeur 1 pour code contamination")
                         foetus[nbre_lignes].informatif = 1
-                        log = log + "Marqueur non contaminé, affectation du code contamination 0................\n"
-                        foetus[nbre_lignes].contamination = 0
-                log = log + "\n\n"
-            log = log + "Calcul échantillon contaminé ou non......\n"
-            log = log + "Marqueur contaminé si >" + str(self.seuil_taux_conta) + ".......\n"
-            log = log + "Echantillon contaminé si plus de " + str(
-                self.seuil_nbre_marqueurs) + "marqueurs contaminés...\n"
-            self.conclusion_echantillon(foetus)
-            log = log + "Calcul échantillon terminé.....\n"
-            log = log + "Fin de traitement...........\n"
-            resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
-            return resultats, conclusion, log
+                        logger.info("Calcul taux de contamination du marqueur")
+                        foetus[nbre_lignes].contamination = 2
+                        logger.info("Calcul terminé")
+                    elif mere[nbre_lignes].homozygote:
+                        logger.info("Mère homozygote détectée")
+                        logger.info("Marqueur non informatif, affection de la valeur 0 pour code informatif")
+                        foetus[nbre_lignes].informatif = 0
+                    elif pic == 2:
+                        logger.info("Deux allèles détectés")
+                        if foetus[nbre_lignes].informatif == 2:
+                            logger.info("Mêmes allèles entre mère et foetus, vérification si homozygote contaminé")
+                            foetus[nbre_lignes].contamination_homozygote(self)
+                            if foetus[nbre_lignes].contamination == 1:
+                                logger.info("Homozygote contaminé identifié")
+                                logger.info("Calcul du taux de contamination")
+                                logger.info("Calcul du taux de contamination effectué")
+                        else:
+                            if foetus[nbre_lignes].informatif != 3:
+                                logger.info("Code informatif différent de 3, pas d'écho")
+                                logger.info("Marqueur informatif, affectation de la valeur 1 pour code informatif")
+                                foetus[nbre_lignes].informatif = 1
+                                logger.info(
+                                    "Marqueur non contaminé, affectation de la valeur 0 pour code contamination")
+                                foetus[nbre_lignes].contamination = 0
+                    else:
+                        logger.info("Un seul allèle détecté")
+                        if foetus[nbre_lignes].informatif != 3:
+                            logger.info("Code informatif différent de 3, pas d'écho")
+                            logger.info("Marqueur informatif, affectation de la valeur 1 pour code informatif")
+                            foetus[nbre_lignes].informatif = 1
+                            logger.info(
+                                "Marqueur non contaminé, affectation de la valeur 0 pour code contamination\n\n")
+                            foetus[nbre_lignes].contamination = 0
+                    logger.info("Marqueur suivant\n")
+                logger.info("Détermination contamination pour échantillon")
+                logger.info("Prise en compte du marqueur si contamination >"f'{str(self.seuil_taux_conta)}%')
+                logger.info("Echantillon contaminé si plus de "f'{str(self.seuil_taux_conta)} marqueurs contaminés')
+                self.conclusion_echantillon(foetus)
+                logger.info("Détermination contamination pour échantillon terminée")
+                logger.info("Fin de traitement")
+                logger.info("Stockage des conclusions")
+                resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
+                return resultats, conclusion
+            except Exception as e:
+                logger.error("Traitement des marqueurs impossible", exc_info=True)
 
     def resultat(self, concordance_mf, concordance_pf, liste_F, liste_M, liste_P):
         """ Set informative character and conclusion for each marker using code tables
@@ -271,7 +269,7 @@ class Echantillon:
                     1 : Homozygous marker contaminated
                     2 : Heterozygous marker contaminated
 
-                Samle conclusion code :
+                Sample conclusion code :
                     0 : not contaminated
                     1 : contaminated
 
@@ -289,105 +287,206 @@ class Echantillon:
         marqueurs_conta = 0
         marqueurs_non_conta = 0
         somme_conta = 0
-        if liste_F[0].allele[1] == 0.0:
-            self.set_sexe("F")
-        else:
-            self.set_sexe("M")
-        if concordance_mf != 16 and concordance_pf != 16 and concordance_pf != None:
-            self.set_concordance_mere_foet("NON")
-            self.set_concordance_pere_foet("NON")
-            del resultat["Conclusion"]
-            for nbres in range(1, len(liste_F)):
-                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
-                resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
-                resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
-                if liste_F[nbres].concordance_mere_foetus == "NON" and liste_P[nbres].concordance_pere_foetus == "NON":
-                    resultat["Détails M/F"].append(
-                        "M : " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
-                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
-                    resultat["Détails P/F"].append(
-                        "P : " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F : " + str(
-                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
-                elif liste_F[nbres].concordance_mere_foetus == "NON":
-                    resultat["Détails M/F"].append(
-                        "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F : " + str(
-                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
-                    resultat["Détails P/F"].append("")
-                elif liste_P[nbres].concordance_pere_foetus == "NON":
-                    resultat["Détails P/F"].append(
-                        "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(
-                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
-                    resultat["Détails M/F"].append("")
+        logger.info("Détermination du sexe")
+        try:
+            if liste_F[0].allele[1] == 0.0:
+                self.set_sexe("F")
+            else:
+                self.set_sexe("M")
+        except Exception as e:
+            logger.error("Détermination du sexe impossible", exc_info=True)
+
+        try:
+            if concordance_mf != len(liste_F) and concordance_pf != len(liste_F) or concordance_mf != len(
+                    liste_F) and concordance_pf != None:
+                del resultat["Conclusion"]
+                self.set_concordance_mere_foet("NON")
+                self.set_concordance_pere_foet("NON")
+                if concordance_pf == None:
+                    logger.warning("Concordance ADNs mère/foetus négative")
+                    logger.warning("Père absent")
+                    self.set_concordance_pere_foet("ABS")
+                    del resultat["Concordance Pere/Foetus"]
+                    del resultat["Détails P/F"]
+                    logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
+                    logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                    logger.info("Répertoriation des marqueurs non concordants")
+                    for nbres in range(1, len(liste_F)):
+                        resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                        resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
+                        if liste_F[nbres].concordance_mere_foetus == "NON":
+                            resultat["Détails M/F"].append(
+                                "M : " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
+                                    liste_F[nbres].normalisation(liste_F[nbres].allele)))
+                        else:
+                            resultat["Détails M/F"].append("")
+                    conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
+                                              index=["Nombre de marqueurs informatifs non contaminés",
+                                                     "Nombre de marqueurs informatifs contaminés",
+                                                     "Moyenne du pourcentage de contamination", "Date"])
+                    resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F"])
+                    logger.info("Répertoriation terminée")
+                    logger.info("Analyse des données terminée")
+                    logger.info("Résultats renvoyés et prêts pour affichage")
+                    return resultats, conclusion
                 else:
-                    resultat["Détails M/F"].append("")
-                    resultat["Détails P/F"].append("")
-                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
-                                          index=["Nombre de marqueurs informatifs non contaminés",
-                                                 "Nombre de marqueurs informatifs contaminés",
-                                                 "Moyenne du pourcentage de contamination", "Date"])
-                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F",
-                                                            "Concordance Pere/Foetus", "Détails P/F"])
-            return resultats, conclusion
-        elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F) or concordance_mf != len(
-                liste_F) and concordance_pf == None:
-            self.set_concordance_mere_foet("NON")
-            self.set_concordance_pere_foet("OUI")
-            if concordance_pf == None:
-                self.set_concordance_pere_foet("ABS")
-            del resultat["Conclusion"]
-            del resultat["Concordance Pere/Foetus"]
-            del resultat["Détails P/F"]
-            for nbres in range(1, len(liste_F)):
-                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
-                resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
-                if liste_F[nbres].concordance_mere_foetus == "NON":
-                    resultat["Détails M/F"].append(
-                        "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
-                            liste_F[nbres].normalisation(liste_F[nbres].allele)))
-                else:
-                    resultat["Détails M/F"].append("")
-                conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
-                                          index=["Nombre de marqueurs informatifs non contaminés",
-                                                 "Nombre de marqueurs informatifs contaminés",
-                                                 "Moyenne du pourcentage de contamination", "Date"])
-                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F"])
-            return resultats, conclusion
-        elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) or concordance_mf == len(
-                liste_F) and concordance_pf == None:
-            self.set_concordance_mere_foet("OUI")
-            self.set_concordance_pere_foet("OUI")
-            if concordance_pf == None:
-                self.set_concordance_pere_foet("ABS")
-            del resultat["Concordance Mere/Foetus"]
-            del resultat["Concordance Pere/Foetus"]
-            del resultat["Détails P/F"]
-            for nbres in range(1, len(liste_F)):
-                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
-                if liste_F[nbres].informatif == 0:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Mère homozygote")
-                elif liste_F[nbres].informatif == 1:
-                    if liste_F[nbres].contamination == 0:
-                        marqueurs_non_conta += 1
-                        resultat["Conclusion"].append("Non contaminé")
-                        resultat["Détails M/F"].append("")
-                    elif liste_F[nbres].contamination == 1:
-                        marqueurs_conta += 1
-                        somme_conta = somme_conta + liste_F[nbres].taux
-                        resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                    logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
+                    logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                    logger.info("Répertoration des marqueurs non concordants")
+                    del resultat["Conclusion"]
+                    for nbres in range(1, len(liste_F)):
+                        resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                        resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
+                        resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
+                        if liste_F[nbres].concordance_mere_foetus == "NON" and liste_P[
+                            nbres].concordance_pere_foetus == "NON":
+                            resultat["Détails M/F"].append(
+                                "M : " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
+                                    liste_F[nbres].normalisation(liste_F[nbres].allele)))
+                            resultat["Détails P/F"].append(
+                                "P : " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F : " + str(
+                                    liste_F[nbres].normalisation(liste_F[nbres].allele)))
+                        elif liste_F[nbres].concordance_mere_foetus == "NON":
+                            resultat["Détails M/F"].append(
+                                "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F : " + str(
+                                    liste_F[nbres].normalisation(liste_F[nbres].allele)))
+                            resultat["Détails P/F"].append("")
+                        elif liste_P[nbres].concordance_pere_foetus == "NON":
+                            resultat["Détails P/F"].append(
+                                "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(
+                                    liste_F[nbres].normalisation(liste_F[nbres].allele)))
+                            resultat["Détails M/F"].append("")
+                        else:
+                            resultat["Détails M/F"].append("")
+                            resultat["Détails P/F"].append("")
+                        conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
+                                                  index=["Nombre de marqueurs informatifs non contaminés",
+                                                         "Nombre de marqueurs informatifs contaminés",
+                                                         "Moyenne du pourcentage de contamination", "Date"])
+                        resultats = pd.DataFrame(resultat,
+                                                 columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F",
+                                                          "Concordance Pere/Foetus", "Détails P/F"])
+                    logger.info("Répertoriation terminée")
+                    logger.info("Analyse des données terminée")
+                    logger.info("Résultats renvoyés et prêts pour l'affichage")
+                    return resultats, conclusion
+            elif concordance_mf != len(liste_F) and concordance_pf == len(liste_F) or concordance_mf != len(
+                    liste_F) and concordance_pf == None:
+                self.set_concordance_mere_foet("NON")
+                self.set_concordance_pere_foet("OUI")
+                if concordance_pf == None:
+                    self.set_concordance_pere_foet("ABS")
+                logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
+                logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                logger.info("Répertoration des marqueurs non concordants")
+                del resultat["Conclusion"]
+                del resultat["Concordance Pere/Foetus"]
+                del resultat["Détails P/F"]
+                for nbres in range(1, len(liste_F)):
+                    resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                    resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
+                    if liste_F[nbres].concordance_mere_foetus == "NON":
+                        resultat["Détails M/F"].append(
+                            "M: " + str(liste_M[nbres].normalisation(liste_M[nbres].allele)) + " F: " + str(
+                                liste_F[nbres].normalisation(liste_F[nbres].allele)))
                     else:
-                        marqueurs_conta += 1
-                        somme_conta = somme_conta + liste_F[nbres].taux
-                        resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
-                elif liste_F[nbres].informatif == 2:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Allèles semblables")
-                else:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Echo")
-            resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails M/F"])
+                        resultat["Détails M/F"].append("")
+                    conclusion = pd.DataFrame({"1": ["Non calculé", "Non calculé", "Non calculé", self.get_date()]},
+                                              index=["Nombre de marqueurs informatifs non contaminés",
+                                                     "Nombre de marqueurs informatifs contaminés",
+                                                     "Moyenne du pourcentage de contamination", "Date"])
+                    resultats = pd.DataFrame(resultat, columns=["Marqueur", "Concordance Mere/Foetus", "Détails M/F"])
+                    logger.info("Répertoriation terminée")
+                    logger.info("Analyse des données terminée")
+                    logger.info("Résultats renvoyés et prêts pour l'affichage")
+                return resultats, conclusion
+            elif concordance_mf == len(liste_F) and concordance_pf == len(liste_F) or concordance_mf == len(
+                    liste_F) and concordance_pf == None:
+                self.set_concordance_mere_foet("OUI")
+                self.set_concordance_pere_foet("OUI")
+                if concordance_pf == None:
+                    self.set_concordance_pere_foet("ABS")
+                del resultat["Concordance Mere/Foetus"]
+                del resultat["Concordance Pere/Foetus"]
+                del resultat["Détails P/F"]
+                for nbres in range(1, len(liste_F)):
+                    resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                    if liste_F[nbres].informatif == 0:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Mère homozygote")
+                    elif liste_F[nbres].informatif == 1:
+                        if liste_F[nbres].contamination == 0:
+                            marqueurs_non_conta += 1
+                            resultat["Conclusion"].append("Non contaminé")
+                            resultat["Détails M/F"].append("")
+                        elif liste_F[nbres].contamination == 1:
+                            marqueurs_conta += 1
+                            somme_conta = somme_conta + liste_F[nbres].taux
+                            resultat["Conclusion"].append("Contaminé")
+                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                        else:
+                            marqueurs_conta += 1
+                            somme_conta = somme_conta + liste_F[nbres].taux
+                            resultat["Conclusion"].append("Contaminé")
+                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                    elif liste_F[nbres].informatif == 2:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Allèles semblables à la mère")
+                    else:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Echo")
+                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails M/F"])
+                try:
+                    moyenne_conta = somme_conta / marqueurs_conta
+                except ZeroDivisionError:
+                    moyenne_conta = 0
+                conclusion = pd.DataFrame(
+                    {"1": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
+                    index=["Nombre de marqueurs informatifs non contaminés",
+                           "Nombre de marqueurs informatifs contaminés",
+                           "Moyenne du pourcentage de contamination", "Date"])
+                return resultats, conclusion
+            elif concordance_mf == len(liste_F) and concordance_pf != len(liste_F):
+                self.set_concordance_mere_foet("OUI")
+                self.set_concordance_pere_foet("NON")
+                del resultat["Concordance Mere/Foetus"]
+                for nbres in range(1, len(liste_F)):
+                    resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
+                    if liste_P[nbres].concordance_pere_foetus == "NON":
+                        resultat["Détails P/F"].append(
+                            "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(
+                                liste_P[nbres].normalisation(liste_P[nbres].allele)))
+                    else:
+                        resultat["Détails P/F"].append("")
+                for nbres in range(1, len(liste_F)):
+                    resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
+                    if liste_F[nbres].informatif == 0:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Mère homozygote")
+                    elif liste_F[nbres].informatif == 1:
+                        if liste_F[nbres].contamination == 0:
+                            marqueurs_non_conta += 1
+                            resultat["Conclusion"].append("Non contaminé")
+                            resultat["Détails M/F"].append("")
+                        elif liste_F[nbres].contamination == 1:
+                            marqueurs_conta += 1
+                            somme_conta = somme_conta + liste_F[nbres].taux
+                            resultat["Conclusion"].append("Contaminé")
+                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                        else:
+                            marqueurs_conta += 1
+                            somme_conta = somme_conta + liste_F[nbres].taux
+                            resultat["Conclusion"].append("Contaminé")
+                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                    elif liste_F[nbres].informatif == 2:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Allèles semblables à la mère")
+                    else:
+                        resultat["Conclusion"].append("Non informatif")
+                        resultat["Détails M/F"].append("Echo")
+                resultats = pd.DataFrame(resultat,
+                                         columns=["Marqueur", "Conclusion", "Détails M/F", "Concordance Pere/Foetus",
+                                                  "Détails P/F"])
             try:
                 moyenne_conta = somme_conta / marqueurs_conta
             except ZeroDivisionError:
@@ -397,55 +496,10 @@ class Echantillon:
                 index=["Nombre de marqueurs informatifs non contaminés", "Nombre de marqueurs informatifs contaminés",
                        "Moyenne du pourcentage de contamination", "Date"])
             return resultats, conclusion
-        elif concordance_mf == len(liste_F) and concordance_pf != len(liste_F):
-            self.set_concordance_mere_foet("OUI")
-            self.set_concordance_pere_foet("NON")
-            del resultat["Concordance Mere/Foetus"]
-            for nbres in range(1, len(liste_F)):
-                resultat["Concordance Pere/Foetus"].append(liste_P[nbres].concordance_pere_foetus)
-                if liste_P[nbres].concordance_pere_foetus == "NON":
-                    resultat["Détails P/F"].append(
-                        "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)))
-                else:
-                    resultat["Détails P/F"].append("")
-            for nbres in range(1, len(liste_F)):
-                resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
-                if liste_F[nbres].informatif == 0:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Mère homozygote")
-                elif liste_F[nbres].informatif == 1:
-                    if liste_F[nbres].contamination == 0:
-                        marqueurs_non_conta += 1
-                        resultat["Conclusion"].append("Non contaminé")
-                        resultat["Détails M/F"].append("")
-                    elif liste_F[nbres].contamination == 1:
-                        marqueurs_conta += 1
-                        somme_conta = somme_conta + liste_F[nbres].taux
-                        resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
-                    else:
-                        marqueurs_conta += 1
-                        somme_conta = somme_conta + liste_F[nbres].taux
-                        resultat["Conclusion"].append("Contaminé")
-                        resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
-                elif liste_F[nbres].informatif == 2:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Allèles semblables")
-                else:
-                    resultat["Conclusion"].append("Non informatif")
-                    resultat["Détails M/F"].append("Echo")
-            resultats = pd.DataFrame(resultat,
-                                     columns=["Marqueur", "Conclusion", "Détails M/F", "Concordance Pere/Foetus",
-                                              "Détails P/F"])
-            try:
-                moyenne_conta = somme_conta / marqueurs_conta
-            except ZeroDivisionError:
-                moyenne_conta = 0
-            conclusion = pd.DataFrame(
-                {"1": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
-                index=["Nombre de marqueurs informatifs non contaminés", "Nombre de marqueurs informatifs contaminés",
-                       "Moyenne du pourcentage de contamination", "Date"])
-            return resultats, conclusion
+            logger.info("Analyse des données terminée")
+            logger.info("Résultats renvoyés et prêts pour l'affichage")
+        except Exception as e:
+            logger.error("Stockage des données impossible", exc_info=True)
 
     def conclusion_echantillon(self, liste_foetus):
         """ This concludes about sample contamination or not.
@@ -465,6 +519,7 @@ class Echantillon:
             self.conclusion = 1
         else:
             self.conclusion = 0
+
 
 class Patient:
     """ Common informations between mother and fetus
@@ -531,13 +586,14 @@ class Patient:
             for Alleles_foetus in range(3):
                 if foetus.allele[Alleles_foetus] - 1 == Allele_Echo:
                     foetus.informatif = 3
-    
-    def normalisation(self,liste_alleles):
-        liste_alleles2=[]
+
+    def normalisation(self, liste_alleles):
+        liste_alleles2 = []
         for alleles in range(len(liste_alleles)):
             if liste_alleles[alleles] != 0.0:
                 liste_alleles2.append(liste_alleles[alleles])
         return liste_alleles2
+
 
 class Mere(Patient):
     """ Exclusive informations about the mother. Mere class inherits from Patient.
@@ -623,10 +679,10 @@ class Foetus(Patient):
             if self.allele[alleles] not in mere.allele:
                 hauteur_allele_different = self.hauteur[alleles]
         taux_contamination = ((hauteur_allele_contaminant) / (
-                    hauteur_allele_different + hauteur_allele_contaminant)) * 100
+                hauteur_allele_different + hauteur_allele_contaminant)) * 100
         self.taux = round(taux_contamination, 2)
 
-    def verif_homozygote_contamine(self, echantillon):
+    def contamination_homozygote(self, echantillon):
         """ Check if the marker is homozygous contaminated
 
             Parameters :
@@ -639,25 +695,17 @@ class Foetus(Patient):
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 1
             self.informatif = 1
+            if self.hauteur[1] < self.hauteur[0] * seuil:
+                allele_contaminant = 1
+                taux = ((2 * self.hauteur[allele_contaminant]) / (
+                            self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
+            else:
+                allele_contaminant = 0
+                taux = ((2 * self.hauteur[allele_contaminant]) / (
+                            self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
+            self.taux = round(taux, 2)
         else:
             self.taux = 0.0
-
-    def homozygote_contamine(self, echantillon):
-        """ Compute contamination value for homozygous contamination.
-
-            Parameters :
-                - echantillon : Echantillon object
-
-            Set taux attribute to value computed.
-        """
-        seuil = echantillon.get_seuil_hauteur()
-        if self.hauteur[1] < self.hauteur[0] * seuil:
-            allele_contaminant = 1
-            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
-        else:
-            allele_contaminant = 0
-            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
-        self.taux = round(taux, 2)
 
 
 class Pere(Patient):
@@ -689,42 +737,47 @@ def lecture_fichier(path_data_frame):
         Donnees_Pere (list) : list of Pere object corresponding to each line of the father extracted from the txt file
         Echantillon_F : Echantillon object to summerize the file
     """
-    logger = logging.getLogger('Lecture du fichier')
-    log = "#### DPNMaker 1.0..............\n### Mirna Marie-Joseph, Théo Gauvrit, Kévin Merchadou\n#### Date : 1 avril 2019\n\n"
-    log = log + "Ouverture du fichier.......................................\n"
-    log = log + "Chargement des données.......................................\n"
-    Iterateur = 2
-    Donnees_Mere = []
-    Donnees_Foetus = []
-    Donnees_Pere = []
-    Donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
-    Donnees = Donnees_na.replace(np.nan, 0.0, regex=True)
-    if (Donnees.shape[0] > 32):
-        Iterateur = 3
-        num_pere = Donnees["Sample Name"].values[2]
-    Allele_na = Donnees[["Allele 1", "Allele 2", "Allele 3"]].values
-    Hauteur_na = Donnees[["Height 1", "Height 2", "Height 3"]].values
-    Date_echantillon = re.search("(\d{4}-\d{2}-\d{2})", Donnees["Sample File"].values[0]).group()
-    Nom_echantillon = Donnees["Sample Name"].values[0]
-    num_foetus = Donnees["Sample Name"].values[1]
-    Allele, Hauteur, log = homogeneite_type(Allele_na, Hauteur_na, log)
-    for ligne in range(0, Donnees.shape[0] - 1, Iterateur):
-        M = Mere(Donnees["Marker"][ligne], Allele[ligne],
-                 Hauteur[ligne], None, None)
-        F = Foetus(Donnees["Marker"][ligne], Allele[ligne + 1],
-                   Hauteur[ligne + 1], None, None, num_foetus, None, None)
-        if (Iterateur == 3):
-            P = Pere(Donnees["Marker"][ligne],
-                     Allele[ligne + 2], Hauteur[ligne + 2], None, num_pere, None)
-            Donnees_Pere.append(P)
-        Donnees_Mere.append(M)
-        Donnees_Foetus.append(F)
-    Echantillon_F = Echantillon(Date_echantillon, Nom_echantillon, F)
-    log = log + "Donnees chargees.......................................\n"
-    return Donnees_Mere, Donnees_Foetus, Donnees_Pere, Echantillon_F, log
+    iterateur = 2
+    donnees_mere = []
+    donnees_foetus = []
+    donnees_pere = []
+    logger.info("Ouverture du fichier")
+    try:
+        donnees_na = pd.read_csv(path_data_frame, sep='\t', header=0)
+        donnees = donnees_na.replace(np.nan, 0.0, regex=True)
+    except Exception as e:
+        logger.error("Ouverture impossible", exc_info=True)
+
+    logger.info("Chargement des données")
+    try:
+        if (donnees.shape[0] > 32):
+            iterateur = 3
+            num_pere = donnees["Sample Name"].values[2]
+        allele_na = donnees[["Allele 1", "Allele 2", "Allele 3"]].values
+        hauteur_na = donnees[["Height 1", "Height 2", "Height 3"]].values
+        date_echantillon = re.search("(\d{4}-\d{2}-\d{2})", donnees["Sample File"].values[0]).group()
+        nom_echantillon = donnees["Sample Name"].values[0]
+        num_foetus = donnees["Sample Name"].values[1]
+        allele, hauteur = homogeneite_type(allele_na, hauteur_na)
+        for ligne in range(0, donnees.shape[0] - 1, iterateur):
+            m = Mere(donnees["Marker"][ligne], allele[ligne],
+                     hauteur[ligne], None, False)
+            f = Foetus(donnees["Marker"][ligne], allele[ligne + 1],
+                       hauteur[ligne + 1], None, None, num_foetus, None, None)
+            if (iterateur == 3):
+                p = Pere(donnees["Marker"][ligne],
+                         allele[ligne + 2], hauteur[ligne + 2], None, num_pere, None)
+                donnees_pere.append(p)
+            donnees_mere.append(m)
+            donnees_foetus.append(f)
+        echantillon_f = Echantillon(date_echantillon, nom_echantillon, f)
+    except Exception as e:
+        logger.error("Chargement données impossible", exc_info=True)
+
+    return donnees_mere, donnees_foetus, donnees_pere, echantillon_f
 
 
-def homogeneite_type(list_allele, list_hauteur, log):
+def homogeneite_type(list_allele, list_hauteur):
     """ Allow to convert string into float for Alleles and Height values in order to compute contamination.
 
         Parameters :
@@ -735,31 +788,32 @@ def homogeneite_type(list_allele, list_hauteur, log):
             - Allele (list) : converted values
             - Hauteur (list) : converted values
     """
-    log = log + "Normalisation des données..........................\n"
-    iteration = 2
-    Allele = []
-    Hauteur = []
-    Allele.append(list_allele[0])
-    Allele.append(list_allele[1])
-    Hauteur.append(list_hauteur[0])
-    Hauteur.append(list_hauteur[1])
-    if len(list_allele) > 32:
-        iteration = 3
-        Allele.append(list_allele[2])
-        Hauteur.append(list_hauteur[2])
-    for i in range(iteration, len(list_allele)):
-        Al = []
-        Ht = []
-        for j in range(3):
-            Al.append(float(list_allele[i][j]))
-            Ht.append(float(list_hauteur[i][j]))
-        Allele.append(Al)
-        Hauteur.append(Ht)
-    log = log + "Normalisation effectuée..............................\n"
-    return Allele, Hauteur, log
+    try:
+        logger.info("Homogénéisation des données")
+        iteration = 2
+        allele = []
+        hauteur = []
+        allele.append(list_allele[0])
+        allele.append(list_allele[1])
+        hauteur.append(list_hauteur[0])
+        hauteur.append(list_hauteur[1])
+        if len(list_allele) > 32:
+            iteration = 3
+            allele.append(list_allele[2])
+            hauteur.append(list_hauteur[2])
+        for i in range(iteration, len(list_allele)):
+            al = []
+            ht = []
+            for j in range(3):
+                al.append(float(list_allele[i][j]))
+                ht.append(float(list_hauteur[i][j]))
+            allele.append(al)
+            hauteur.append(ht)
+        return allele, hauteur
+    except Exception as e:
+        logger.error("Homogénéisation impossible", exc_info=True)
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F, log = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
-    resultats, conclusion, log = Echantillon_F.analyse_donnees(M, F, P, log)
-    print(Echantillon_F.get_conclusion())
+    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
+    resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)

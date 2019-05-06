@@ -5,11 +5,15 @@
 
 import Traitement2
 import pdf_feuille_resultat
-import pandas as pd
+
 import os
 import sys
 import kivy
+import logging
 
+
+
+from datetime import datetime
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
@@ -41,15 +45,24 @@ Window.clearcolor = (0.949, 0.945, 0.945, 1)
 Window.size = (850,650)
 Window.minimum_width= 800
 Window.minimum_height=550
+
+heure = datetime.now()
+heure_vrai = heure.strftime("%d-%m-%Y_%Hh_%Mm")
+logging.basicConfig(filename='log_'+heure_vrai+'.txt', filemode='w', format='%(name)s - %(levelname)s: %(message)s',
+                    level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 class ScreenManagement(ScreenManager):
     pass 
-
 class EcranPremier(Screen):
     def show_load(self,nom_utilisateur):
+        try:
+            self.manager.get_screen('ecran_principale').ids.ecranMethod.show_load()
+            self.manager.get_screen('ecran_principale').ids.ecranMethod.InfoParametre["nom_utilisateur"]=str(nom_utilisateur)
+        except Exception as e:
+            logger.error("Chargement écran échoué", exc_info=True)
 
-        self.manager.get_screen('ecran_principale').ids.ecranMethod.show_load()
-        self.manager.get_screen('ecran_principale').ids.ecranMethod.InfoParametre["nom_utilisateur"]=str(nom_utilisateur)
-
+        logger.info("Changment d'écran réussi")
 class EcranFct(Screen):
     pass
 
@@ -78,18 +91,19 @@ class CloseableHeader(TabbedPanelHeader):
     panel=ObjectProperty(None)
     text1=ObjectProperty(None)
     SuprOnglet=ObjectProperty(None)
-
+    
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
     Retourner=ObjectProperty(None)
     ecran=ObjectProperty(None)
+    path=ObjectProperty(None)
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
     nom_pdf=ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
-    path=ObjectProperty("./")
+    path=ObjectProperty(None)
 
 class ParametreDialog(FloatLayout):
     save_parametres=ObjectProperty(None)
@@ -136,157 +150,146 @@ class ResAnalyse(BoxLayout):
     colorconcoP=(256, 256, 256, 1)
     SaveLog=ObjectProperty(None)
     down_button=ObjectProperty(None)
+    filename=""
+    path=""
+    hauteur="1/3"
+    conta=5
+    nb=2
     
     def remplissage(self,tableau_df,conclusion,contamination,Echantillon_F):
-        
-        if(Echantillon_F.get_concordance_mere_foet()=='NON'):
-            self.colorconcoM=colortext=(241/256,31/256,82/256,1)
-        if(Echantillon_F.get_concordance_pere_foet()=='NON'):
-            self.colorconcoP=colortext=(241/256,31/256,82/256,1)
-        BoxConcordance=ConcordanceEtSexe(info_sexe="Sexe foetus : "+Echantillon_F.get_sexe(),
-                                        conco_M=Echantillon_F.get_concordance_mere_foet(),
-                                        conco_P=Echantillon_F.get_concordance_pere_foet(),
-                                        colorconcoM=self.colorconcoM,
-                                        colorconcoP=self.colorconcoP)
-        self.ids.TitreEtConco.add_widget(BoxConcordance)
+        try:
+            if(Echantillon_F.get_concordance_mere_foet()=='NON'):
+                self.colorconcoM=colortext=(241/256,31/256,82/256,1)
+            if(Echantillon_F.get_concordance_pere_foet()=='NON'):
+                self.colorconcoP=colortext=(241/256,31/256,82/256,1)
+            BoxConcordance=ConcordanceEtSexe(info_sexe="Sexe foetus : "+Echantillon_F.get_sexe(),
+                                            conco_M=Echantillon_F.get_concordance_mere_foet(),
+                                            conco_P=Echantillon_F.get_concordance_pere_foet(),
+                                            colorconcoM=self.colorconcoM,
+                                            colorconcoP=self.colorconcoP)
+            self.ids.TitreEtConco.add_widget(BoxConcordance)
 
-        if(Echantillon_F.get_concordance_mere_foet()=="OUI"):
-            entete=LigneTableau(t_col1="Marqueurs",
-                                t_col2="Conclusion",
-                                t_col3="Détails",
-                                color_mode=(75/255, 127/255, 209/255,1),
-                                color_text=(0.949, 0.945, 0.945, 1),
-                                color_text2=(0.949, 0.945, 0.945, 1))
-            if(contamination==1):
-                self.ids.TButtonContamine.state='down'
-                
-            else:
-                self.ids.TButtonNonContamine.state='down'
-            self.ids.le_tableau.add_widget(entete)
-            parti_conclu=InfosConclusion(TLigneInfo1="Marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
-                                        TLigneInfo2="Marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
-                                        TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2])
-                                        )
-            self.ids.ensemble_info.add_widget(parti_conclu)
-            
-            
-            for i in range(len(tableau_df.index)):
-                colortext=(256,256,256,1)
-                if(tableau_df["Conclusion"][i]=='Non contaminé'):
-                    colortext=(23/256,116/256,10/256,1)
-                if(tableau_df["Conclusion"][i]=='Contaminé'):
-                    colortext=(241/256,31/256,82/256,1)
-                if (i%2 == 0):
-
-                    ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                        t_col2=tableau_df["Conclusion"][i],
-                                        t_col3=tableau_df["Détails M/F"][i],
-                                        color_mode=(0.949, 0.945, 0.945, 0.2), 
-                                        color_text2=colortext
-                                       )
-
-                    self.ids.le_tableau.add_widget(ligne)
-                else:
-                    ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                        t_col2=tableau_df["Conclusion"][i],
-                                        t_col3=tableau_df["Détails M/F"][i],
-                                        color_mode=(49/255, 140/255, 231/255,0.2), 
-                                        color_text2=colortext
-                                        )
-
-                    self.ids.le_tableau.add_widget(ligne)
-        else:
-            if(Echantillon_F.get_concordance_pere_foet()=="OUI" or Echantillon_F.get_concordance_pere_foet()=="ABS" ):
+            if(Echantillon_F.get_concordance_mere_foet()=="OUI"):
                 entete=LigneTableau(t_col1="Marqueurs",
-                                    t_col2="Concordance Mere/Foetus",
+                                    t_col2="Conclusion",
                                     t_col3="Détails",
                                     color_mode=(75/255, 127/255, 209/255,1),
                                     color_text=(0.949, 0.945, 0.945, 1),
-                                    color_text2=(0.949, 0.945, 0.945, 1)
-                                    )
+                                    color_text2=(0.949, 0.945, 0.945, 1))
+                if(contamination==1):
+                    self.ids.TButtonContamine.state='down'
+
+                else:
+                    self.ids.TButtonNonContamine.state='down'
                 self.ids.le_tableau.add_widget(entete)
-                
-                parti_conclu=InfosConclusion(TLigneInfo1="Marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
-                                            TLigneInfo2="Marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
-                                            TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2]))
+                print(conclusion)
+                parti_conclu=InfosConclusion(TLigneInfo1="Nombre de marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
+                                            TLigneInfo2="Nombre de marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
+                                            TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2])
+                                            )
                 self.ids.ensemble_info.add_widget(parti_conclu)
-                
-                
+
+
                 for i in range(len(tableau_df.index)):
                     colortext=(256,256,256,1)
-                    if(tableau_df["Concordance Mere/Foetus"][i]=='NON'):
+                    colmode=(49/255, 140/255, 231/255,0.2)
+                    if(tableau_df["Conclusion"][i]=='Non contaminé'):
+                        colortext=(23/256,116/256,10/256,1)
+                    if(tableau_df["Conclusion"][i]=='Contaminé'):
                         colortext=(241/256,31/256,82/256,1)
                     if (i%2 == 0):
-
-                        ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                            t_col2=tableau_df["Concordance Mere/Foetus"][i],
-                                            t_col3=tableau_df["Détails M/F"][i],
-                                            color_mode=(0.949, 0.945, 0.945, 0.2), 
-                                            color_text2=colortext)
-
-                        self.ids.le_tableau.add_widget(ligne)
-                    else:
-                        ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                            t_col2=tableau_df["Concordance Mere/Foetus"][i],
-                                            t_col3=tableau_df["Détails M/F"][i],
-                                            color_mode=(49/255, 140/255, 231/255,0.2), 
-                                            color_text2=colortext)
-
-                        self.ids.le_tableau.add_widget(ligne)
-
+                        colmode=(0.949, 0.945, 0.945, 0.2)
+                    ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i],
+                                        t_col2=tableau_df["Conclusion"][i],
+                                        t_col3=tableau_df["Détails M/F"][i],
+                                        color_mode=colmode,
+                                        color_text2=colortext)
+                    self.ids.le_tableau.add_widget(ligne)
             else:
-                entete=LigneTableau(t_col1="Marqueurs",
-                                    t_col2="Concordance Mere/Foetus",
-                                    t_col3="Détails M/F",color_mode=(75/255, 127/255, 209/255,1),
-                                    color_text=(0.949, 0.945, 0.945, 1),
-                                    color_text2=(0.949, 0.945, 0.945, 1),
-                                    large=0.20)
-                
-                col4=Label(text="Concordance Pere/Foetus",color=(0.949, 0.945, 0.945, 1))
-                col5=Label(text="Détails P/F",color=(0.949, 0.945, 0.945, 1))
-                entete.add_widget(col4)
-                entete.add_widget(col5)
-                self.ids.le_tableau.add_widget(entete)
-                
-                parti_conclu=InfosConclusion(TLigneInfo1="Marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
-                                            TLigneInfo2="Marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
-                                            TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2]))
-                self.ids.ensemble_info.add_widget(parti_conclu)
-                
-                
-                for i in range(len(tableau_df.index)):
-                    colortext=(256,256,256,1)
-                    if(tableau_df["Concordance Mere/Foetus"][i]=='NON'):
-                        colortext=(241/256,31/256,82/256,1)
-                    if (i%2 == 0):
+                if(Echantillon_F.get_concordance_pere_foet()=="OUI" or Echantillon_F.get_concordance_pere_foet()=="ABS" ):
+                    entete=LigneTableau(t_col1="Marqueurs",
+                                        t_col2="Concordance Mere/Foetus",
+                                        t_col3="Détails",
+                                        color_mode=(75/255, 127/255, 209/255,1),
+                                        color_text=(0.949, 0.945, 0.945, 1),
+                                        color_text2=(0.949, 0.945, 0.945, 1)
+                                        )
+                    self.ids.le_tableau.add_widget(entete)
 
-                        ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                            t_col2=tableau_df["Concordance Mere/Foetus"][i],
-                                            t_col3=tableau_df["Détails M/F"][i],
-                                            color_mode=(0.949, 0.945, 0.945, 0.2), 
-                                            color_text2=colortext,large=0.20)
-                        col4=Label(text=tableau_df["Concordance Pere/Foetus"][i],color=(256,256,256,1))
-                        col5=Label(text=tableau_df["Détails P/F"][i],color=(256,256,256,1))
-                        ligne.add_widget(col4)
-                        ligne.add_widget(col5)
+                    parti_conclu=InfosConclusion(TLigneInfo1="Nombre de marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
+                                                TLigneInfo2="Nombre de marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
+                                                TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2]))
+                    self.ids.ensemble_info.add_widget(parti_conclu)
+                    self.ids.togglebutonEtLabel.clear_widgets()
+                    new_label=Label(text="Analyse non-réalisée",color=(241/256,31/256,82/256,1),font_size=30)
+                    self.ids.togglebutonEtLabel.add_widget(new_label)
+                    self.ids.labelPrelev.font_size=30
+                    self.ids.labelPrelev.color=(241/256,31/256,82/256,1)
 
-                        
+                    for i in range(len(tableau_df.index)):
+                        colortext=(256,256,256,1)
+                        colmode=(49/255, 140/255, 231/255,0.2)
+                        if(tableau_df["Concordance Mere/Foetus"][i]=='NON'):
+                            colortext=(241/256,31/256,82/256,1)
+                        if (i%2 == 0):
+                            colmode=(0.949, 0.945, 0.945, 0.2)
+                        ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i],
+                                                t_col2=tableau_df["Concordance Mere/Foetus"][i],
+                                                t_col3=tableau_df["Détails M/F"][i],
+                                                color_mode=colmode,
+                                                color_text2=colortext)
                         self.ids.le_tableau.add_widget(ligne)
-                    else:
-                        ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i], 
-                                            t_col2=tableau_df["Concordance Mere/Foetus"][i],
-                                            t_col3=tableau_df["Détails M/F"][i],
-                                            color_mode=(49/255, 140/255, 231/255,0.2), 
-                                            color_text2=colortext,large=0.20)
-                        col4=Label(text=tableau_df["Concordance Pere/Foetus"][i],color=(256,256,256,1))
-                        col5=Label(text=tableau_df["Détails P/F"][i],color=(256,256,256,1))
-                        ligne.add_widget(col4)
-                        ligne.add_widget(col5)
-                        
-                        self.ids.le_tableau.add_widget(ligne)
-    
-                pass
-            
+
+
+                else:
+                    entete=LigneTableau(t_col1="Marqueurs",
+                                        t_col2="Concordance Mere/Foetus",
+                                        t_col3="Détails M/F",color_mode=(75/255, 127/255, 209/255,1),
+                                        color_text=(0.949, 0.945, 0.945, 1),
+                                        color_text2=(0.949, 0.945, 0.945, 1),
+                                        large=0.20)
+
+                    col4=Label(text="Concordance Pere/Foetus",color=(0.949, 0.945, 0.945, 1))
+                    col5=Label(text="Détails P/F",color=(0.949, 0.945, 0.945, 1))
+                    entete.add_widget(col4)
+                    entete.add_widget(col5)
+                    self.ids.le_tableau.add_widget(entete)
+
+                    parti_conclu=InfosConclusion(TLigneInfo1="Nombre de marqueurs informatifs non contaminés: "+str(conclusion["1"][0]),
+                                                TLigneInfo2="Nombre de marqueurs informatifs contaminés: "+str(conclusion["1"][1]),
+                                                TLigneInfo3="Moyenne du pourcentage de contamination: "+str(conclusion["1"][2]))
+                    self.ids.ensemble_info.add_widget(parti_conclu)
+                    self.ids.togglebutonEtLabel.clear_widgets()
+                    new_label=Label(text="Analyse non-réalisée",color=(241/256,31/256,82/256,1),font_size=30)
+                    self.ids.togglebutonEtLabel.add_widget(new_label)
+                    self.ids.labelPrelev.font_size=30
+                    self.ids.labelPrelev.color=(241/256,31/256,82/256,1)
+
+                    for i in range(len(tableau_df.index)):
+                        if(tableau_df["Concordance Mere/Foetus"][i]=='NON'):
+                            for i in range(len(tableau_df.index)):
+                                colortext=(256,256,256,1)
+                                colmode=(49/255, 140/255, 231/255,0.2)
+                                if(tableau_df["Concordance Mere/Foetus"][i]=='NON'):
+                                    colortext=(241/256,31/256,82/256,1)
+                                if (i%2 == 0):
+                                    colmode=(0.949, 0.945, 0.945, 0.2)
+                                ligne=LigneTableau(t_col1=tableau_df["Marqueur"][i],
+                                                        t_col2=tableau_df["Concordance Mere/Foetus"][i],
+                                                        t_col3=tableau_df["Détails M/F"][i],
+                                                        color_mode=colmode,
+                                                        color_text2=colortext)
+                                col4=Label(text=tableau_df["Concordance Pere/Foetus"][i],color=(256,256,256,1))
+                                col5=Label(text=tableau_df["Détails P/F"][i],color=(256,256,256,1))
+                                ligne.add_widget(col4)
+                                ligne.add_widget(col5)
+
+                                self.ids.le_tableau.add_widget(ligne)
+
+
+        except Exception as e:
+            logger.error("Remplissage de la page échouée", exc_info=True)
+        logger.info("Remplissage de la page réussi")
     def CouleurBouton(self,id):
         
         if(id==0):
@@ -323,8 +326,11 @@ class EcranFctMethod(GridLayout):
         self._popup.dismiss()
 
     def show_load(self):
-        
-        contenu=LoadDialog(load=self.load,cancel=self.dismiss_popup,Retourner=self.Retourner,ecran=self)
+        self.hauteur="1/3"
+        self.conta=5
+        self.nb=2
+        ppath=os.path.join(os.environ["HOMEPATH"], "Desktop")
+        contenu=LoadDialog(load=self.load,cancel=self.dismiss_popup,Retourner=self.Retourner,ecran=self,path=ppath)
         self._popup = Popup(title='Ouvrir un fichier', content=contenu,  size_hint=(0.9, 0.9))
         self._popup.open()
         if(self.retour):
@@ -335,16 +341,17 @@ class EcranFctMethod(GridLayout):
 
         
     def load(self, path, filename):
-        #traitement du fichier
+
         try:
-            M, F, P, Echantillon_F, log = Traitement2.lecture_fichier(os.path.join(path, filename[0]))
-            
-        
+            #lecture du fichier et traitement
+            M, F, P, Echantillon_F = Traitement2.lecture_fichier(os.path.join(path, filename[0]))
+            logger.info("fonction lecture fichier réussi")
             Echantillon_F.set_seuil_hauteur(eval(self.hauteur))
             Echantillon_F.set_seuil_taux_conta(float(self.conta))
             Echantillon_F.set_seuil_nbre_marqueurs(float(self.nb))
-            resultats, conclusion, log = Echantillon_F.analyse_donnees(M, F,P, log)
-
+            logger.info("Attribution des taux réussi")
+            resultats, conclusion = Echantillon_F.analyse_donnees(M, F,P)
+            logger.info("Fonction analyse_données réussi")
             #récupération et attribution de données
             self.InfoParametre["Sexe"]=Echantillon_F.get_sexe()
             self.InfoParametre["df_conclusion"]=resultats
@@ -355,7 +362,7 @@ class EcranFctMethod(GridLayout):
             self.InfoParametre["Entite_appli"]=""
             self.InfoParametre["nom_pdf"]= self.InfoParametre["nom_projet"]+"_"+self.InfoParametre["nom_utilisateur"]
             self.InfoParametre["Version"]=str(version)
-
+            logger.info("Récupération des données réussi")
             if(Echantillon_F.get_concordance_pere_foet() == "ABS"):
                 self.InfoParametre["num_pere"] = "ABS"
                 self.InfoParametre["pres_pere"] = "ABS"
@@ -364,29 +371,38 @@ class EcranFctMethod(GridLayout):
                 self.InfoParametre["pres_pere"] = "OUI"
             self.InfoParametre["num_foetus"] = F[0].get_num_foetus()
             self.titre =  Echantillon_F.get_name()
-            self.log=log
-            
+            self.log=""
+
             nv_onglets = CloseableHeader(text1=self.titre +"  ",panel=self.ids.les_onglets,SuprOnglet=self.SuprOnglet)
             contenu_res = ResAnalyse(
-                titre=self.titre + "\n" + "\n", 
+                titre=self.titre + "\n" + "\n",
                 NvGroupe=len(self.ids.les_onglets.tab_list),
                 show_save=self.show_save,
                 SaveLog=self.SaveLog,
                 down_button=self.down_button)
+            contenu_res.filename=filename
+            contenu_res.path=path
+            contenu_res.nb=self.nb
+            contenu_res.conta=self.conta
+            contenu_res.hauteur=self.hauteur
             contenu_res.remplissage(self.InfoParametre["df_conclusion"],
                                     self.InfoParametre["df_detail"],
                                     Echantillon_F.get_conclusion(),
                                     Echantillon_F)
             nv_onglets.content = contenu_res
-            
-            
+
+
             self.ids.les_onglets.add_widget(nv_onglets)
             self.ids.les_onglets.switch_to(nv_onglets)
             self.dismiss_popup()
-            
-        except ( KeyError,UnicodeDecodeError):
-            print("Erreur lecture fichier")
+
+        except Exception as e:
+
+            logger.error("Chargement données/Traitement impossible", exc_info=True)
+
             return False
+        logger.info("Chargement et traitement des données réussi")
+
         return True
 
     def ChangeOnglet(self):
@@ -403,7 +419,7 @@ class EcranFctMethod(GridLayout):
         self.ChangeOnglet()
 
     def show_save(self):
-        content = SaveDialog(save=self.save, cancel=self.dismiss_popup,path=os.getcwd(),nom_pdf=self.InfoParametre["nom_pdf"])
+        content = SaveDialog(save=self.save, cancel=self.dismiss_popup,path=os.path.join(os.environ["HOMEPATH"], "Desktop"),nom_pdf=self.InfoParametre["nom_pdf"])
         self._popup = Popup(title="Sauvegarder un  fichier", content=content,
                             size_hint=(0.9, 0.9))
         self._popup.open()
@@ -417,54 +433,82 @@ class EcranFctMethod(GridLayout):
             self.InfoParametre["code_conclu"] = 2
         if (self.choix == 1 and self.InfoParametre["code_conclu"]==0):
             self.InfoParametre["code_conclu"] = 3
-        pdf_feuille_resultat.creation_PDF(os.path.join(path),
-                                        self.InfoParametre["nom_projet"],
-                                        self.InfoParametre["nom_projet"],
-                                        self.InfoParametre["num_foetus"],
-                                        self.InfoParametre["num_pere"],
-                                        filename,
-                                        self.InfoParametre["Sexe"],
-                                        self.InfoParametre["df_conclusion"],
-                                        self.InfoParametre["df_detail"],
-                                        self.InfoParametre["code_conclu"],
-                                        self.InfoParametre["nom_utilisateur"],
-                                        self.hauteur,
-                                        self.nb,
-                                        self.conta,
-                                        self.InfoParametre["pres_pere"],
-                                        self.InfoParametre["Entite_appli"],
-                                        self.InfoParametre["Emetteur"],
-                                        self.InfoParametre["Version"])
-        self.dismiss_popup()
-        os.system("xdg-open " + (self.InfoParametre["nom_projet"]+"_"+self.InfoParametre["nom_utilisateur"]+".pdf"))
+        try:
+            pdf_feuille_resultat.creation_PDF(os.path.join(path),
+                                            self.InfoParametre["nom_projet"],
+                                            self.InfoParametre["nom_projet"],
+                                            self.InfoParametre["num_foetus"],
+                                            self.InfoParametre["num_pere"],
+                                            filename,
+                                            self.InfoParametre["Sexe"],
+                                            self.InfoParametre["df_conclusion"],
+                                            self.InfoParametre["df_detail"],
+                                            self.InfoParametre["code_conclu"],
+                                            self.InfoParametre["nom_utilisateur"],
+                                            self.hauteur,
+                                            self.nb,
+                                            self.conta,
+                                            self.InfoParametre["pres_pere"],
+                                            self.InfoParametre["Entite_appli"],
+                                            self.InfoParametre["Emetteur"],
+                                            self.InfoParametre["Version"])
+            self.dismiss_popup()
+        except Exception as e:
+            logger.error("Echec lancement créaton pdf", exc_info=True)
+            return
+        logger.info("Création pdf réussi")
+        if sys.platform == 'linux':
+            os.system("xdg-open " +os.path.join(path+filename)+".pdf")
+        else:
+            os.system('start ' +path+"\\"+filename+".pdf")
     def down_button(self,num):
         
         self.choix=num
     
     def ouverture_parametres(self):
-        content = ParametreDialog( hauteur=str(self.hauteur),
-                                    nb=str(self.nb),
-                                    conta=str(self.conta),
-                                    save_parametres=self.save_parametres,
-                                    emetteur=self.InfoParametre["Emetteur"],
-                                    entite=self.InfoParametre["Entite_appli"],
-                                    cancel=self.dismiss_popup)
-        self._popup = Popup(title="Modifier des parametres", content=content,
-                            size_hint=(0.9, 0.9))
-        self._popup.open()
+        try:
+            content = ParametreDialog( hauteur=str(self.ids.les_onglets.current_tab.content.hauteur),
+                                        nb=str(self.ids.les_onglets.current_tab.content.nb),
+                                        conta=str(self.ids.les_onglets.current_tab.content.conta),
+                                        save_parametres=self.save_parametres,
+                                        emetteur=self.InfoParametre["Emetteur"],
+                                        entite=self.InfoParametre["Entite_appli"],
+                                        cancel=self.dismiss_popup)
+            self._popup = Popup(title="Modifier des parametres", content=content,
+                                size_hint=(0.9, 0.9))
+            self._popup.open()
+        except Exception as e:
+            logger.error("Ouverture paramétre impossible", exc_info=True)
+        logger.info("Ouverture paramètre réussi")
     
 
     def save_parametres(self,p1,p2,p3,p4,p5):
-        self.nb= p1
-        self.conta = p2
-        self.hauteur = p3
-        self.InfoParametre["Emetteur"]=p4
-        self.InfoParametre["Entite_appli"] = p5
-        self.dismiss_popup()
-        
+        try:
+            self.nb=p1
+            self.conta=p2
+            self.hauteur=p3
+
+            self.InfoParametre["Emetteur"]=p4
+            self.InfoParametre["Entite_appli"] = p5
+            tab_a_suppr=self.ids.les_onglets.current_tab
+            self.load( self.ids.les_onglets.current_tab.content.path, self.ids.les_onglets.current_tab.content.filename)
+            self.ids.les_onglets.remove_widget(tab_a_suppr)
+            #self.ids.les_onglets.current_tab.content.nb= p1
+            #self.ids.les_onglets.current_tab.content.conta = p2
+            #self.ids.les_onglets.current_tab.content.hauteur = p3
+            ResAnalyse.nb=p1
+            ResAnalyse.conta=p2
+            ResAnalyse.hauteur=p3
+            self.dismiss_popup()
+        except Exception as e:
+            logger.error("Changement paramètres échoué nb(attendu)=entier,nb(indiqué)= "f'{str(p1)}'
+                         ", conta(attendu)=décimal entre 1 et 100,conta(indiqué)= "f'{str(p2)}'
+                         ", hauteur(attendu)=entier ou fraction,hauteur(indiqué)= "f'{str(p3)}'
+                         ,exc_info=True)
+            return
+        logger.info("Changement paramètres réussi")
     def SaveLog(self):
-        with open(os.path.join("log_"+self.titre), 'w') as stream:
-            stream.write(self.log)
+        pass
 
     def quitter(self):
        
@@ -476,9 +520,13 @@ class MyApp(App):
 
     def build(self):
         self.icon = 'logo.png'
+
+
+
+
     
 Factory.register('ResAnalyse', cls=ResAnalyse)
-Factory.register('EcranPremier', cls=EcranPremier)    
+Factory.register('EcranPremier', cls=EcranPremier)
 Factory.register('EcranFct', cls=EcranFct)
 Factory.register('EcranFctMethod', cls=EcranFctMethod)
 Factory.register('LoadDialog', cls=LoadDialog)
@@ -489,6 +537,8 @@ Factory.register('InfosConclusion', cls=InfosConclusion)
 Factory.register('ConcordanceEtSexe', cls=ConcordanceEtSexe)
 Factory.register('CloseableHeader', cls=CloseableHeader)
 if __name__ == '__main__':
+
+
 
     version=1.0
     app= MyApp()
