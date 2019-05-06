@@ -333,7 +333,6 @@ class Echantillon:
                     logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
                     logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
                     logger.info("Répertoration des marqueurs non concordants")
-                    del resultat["Conclusion"]
                     for nbres in range(1, len(liste_F)):
                         resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                         resultat["Concordance Mere/Foetus"].append(liste_F[nbres].concordance_mere_foetus)
