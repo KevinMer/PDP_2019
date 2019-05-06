@@ -171,7 +171,7 @@ class Echantillon:
                             break
         except Exception as e:
             logger.error("Vérification concordance ADN impossible",exc_info=True)
-            sys.exit()
+            
         logger.info("Vérification concordance des ADNs terminée")
         if concordance_mf != len(foetus):
             resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
@@ -290,7 +290,7 @@ class Echantillon:
                 self.set_sexe("M")
         except Exception as e:
             logger.error("Détermination du sexe impossible",exc_info=True)
-            sys.exit()
+            
         try:
             if concordance_mf != len(liste_F) and concordance_pf != len(liste_F) or concordance_mf != len(liste_F) and concordance_pf != None:
                 del resultat["Conclusion"]
@@ -433,7 +433,7 @@ class Echantillon:
                 except ZeroDivisionError:
                     moyenne_conta = 0
                 conclusion = pd.DataFrame(
-                    {"A": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
+                    {"1": [int(marqueurs_non_conta), int(marqueurs_conta), round(moyenne_conta, 2), self.get_date()]},
                     index=["Nombre de marqueurs informatifs non contaminés", "Nombre de marqueurs informatifs contaminés",
                         "Moyenne du pourcentage de contamination", "Date"])
                 return resultats, conclusion
@@ -490,7 +490,7 @@ class Echantillon:
             logger.info("Résultats renvoyés et prêts pour l'affichage")
         except Exception as e:
             logger.error("Stockage des données impossible",exc_info=True)
-            sys.exit()
+            
 
     def conclusion_echantillon(self, liste_foetus):
         """ This concludes about sample contamination or not.
@@ -733,7 +733,7 @@ def lecture_fichier(path_data_frame):
         donnees = donnees_na.replace(np.nan, 0.0, regex=True)
     except Exception as e:
         logger.error("Ouverture impossible",exc_info=True)
-        sys.exit()
+        
     logger.info("Chargement des données")
     try:
         if (donnees.shape[0] > 32):
@@ -759,7 +759,7 @@ def lecture_fichier(path_data_frame):
         echantillon_f = Echantillon(date_echantillon, nom_echantillon, f)
     except Exception as e:
         logger.error("Chargement données impossible",exc_info=True)
-        sys.exit()
+        
     return donnees_mere, donnees_foetus, donnees_pere, echantillon_f
 
 
@@ -798,7 +798,7 @@ def homogeneite_type(list_allele, list_hauteur):
         return allele, hauteur
     except Exception as e:
         logger.error("Homogénéisation impossible",exc_info=True)
-        sys.exit()
+        
         
 
 
