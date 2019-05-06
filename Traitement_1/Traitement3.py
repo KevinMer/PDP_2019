@@ -6,6 +6,11 @@ from datetime import datetime
 from time import strftime
 import re
 
+heure = datetime.now()
+heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
+logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 class Echantillon:
     """ Parameters used to analyze one fetal sample
 
@@ -122,7 +127,7 @@ class Echantillon:
         """
         self.conclusion = conclusion
 
-    def analyse_donnees(self, mere, foetus, pere,logger):
+    def analyse_donnees(self, mere, foetus, pere):
         """ Analyze data
             For one couple lignes mother/fetus, informative character and conclusion is set
 
@@ -133,7 +138,6 @@ class Echantillon:
             Return two dataframes :
                 - first one containing information about Name, Conclusion and Details for each marker
                 - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers )
-
             """
         logger.info("Analyse des données")
         logger.info("Vérification concordance ADN")
@@ -212,11 +216,10 @@ class Echantillon:
                         logger.info("Deux allèles détectés")
                         if foetus[nbre_lignes].informatif == 2:
                             logger.info("Mêmes allèles entre mère et foetus, vérification si homozygote contaminé")
-                            foetus[nbre_lignes].verif_homozygote_contamine(self)
+                            foetus[nbre_lignes].contamination_homozygote(self)
                             if foetus[nbre_lignes].contamination == 1:
                                 logger.info("Homozygote contaminé identifié")
                                 logger.info("Calcul du taux de contamination")
-                                foetus[nbre_lignes].homozygote_contamine(self)
                                 logger.info("Calcul du taux de contamination effectué")
                         else:
                             if foetus[nbre_lignes].informatif != 3:
@@ -241,12 +244,12 @@ class Echantillon:
                 logger.info("Détermination contamination pour échantillon terminée")
                 logger.info("Fin de traitement")
                 logger.info("Stockage des conclusions")
-                resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere,logger)
+                resultats, conclusion = self.resultat(concordance_mf, concordance_pf, foetus, mere, pere)
                 return resultats, conclusion
             except Exception as e:
                 logger.error("Traitement des marqueurs impossible",exc_info=True)
 
-    def resultat(self, concordance_mf, concordance_pf, liste_F, liste_M, liste_P,logger):
+    def resultat(self, concordance_mf, concordance_pf, liste_F, liste_M, liste_P):
         """ Set informative character and conclusion for each marker using code tables
                 Code tables are :
 
@@ -261,7 +264,7 @@ class Echantillon:
                     1 : Homozygous marker contaminated
                     2 : Heterozygous marker contaminated
 
-                Samle conclusion code :
+                Sample conclusion code :
                     0 : not contaminated
                     1 : contaminated
 
@@ -668,7 +671,7 @@ class Foetus(Patient):
                     hauteur_allele_different + hauteur_allele_contaminant)) * 100
         self.taux = round(taux_contamination, 2)
 
-    def verif_homozygote_contamine(self, echantillon):
+    def contamination_homozygote(self, echantillon):
         """ Check if the marker is homozygous contaminated
 
             Parameters :
@@ -681,26 +684,15 @@ class Foetus(Patient):
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 1
             self.informatif = 1
+            if self.hauteur[1] < self.hauteur[0] * seuil:
+                allele_contaminant = 1
+                taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
+            else:
+                allele_contaminant = 0
+                taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
+            self.taux = round(taux, 2)
         else:
             self.taux = 0.0
-
-    def homozygote_contamine(self, echantillon):
-        """ Compute contamination value for homozygous contamination.
-
-            Parameters :
-                - echantillon : Echantillon object
-
-            Set taux attribute to value computed.
-        """
-        seuil = echantillon.get_seuil_hauteur()
-        if self.hauteur[1] < self.hauteur[0] * seuil:
-            allele_contaminant = 1
-            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
-        else:
-            allele_contaminant = 0
-            taux = ((2 * self.hauteur[allele_contaminant]) / (self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
-        self.taux = round(taux, 2)
-
 
 class Pere(Patient):
     """ Exclusive informations about the father. Pere class inherits from Patient.
@@ -717,7 +709,7 @@ class Pere(Patient):
         return self.num_pere
 
 
-def lecture_fichier(path_data_frame,logger):
+def lecture_fichier(path_data_frame):
     """ Read file corresponding to path_data_frame.
         For each line, Mere, Foetus or Pere object are created.
         At the end, one Echantillon object is created.
@@ -752,7 +744,7 @@ def lecture_fichier(path_data_frame,logger):
         date_echantillon = re.search("(\d{4}-\d{2}-\d{2})", donnees["Sample File"].values[0]).group()
         nom_echantillon = donnees["Sample Name"].values[0]
         num_foetus = donnees["Sample Name"].values[1]
-        allele, hauteur = homogeneite_type(allele_na, hauteur_na,logger)
+        allele, hauteur = homogeneite_type(allele_na, hauteur_na)
         for ligne in range(0, donnees.shape[0] - 1, iterateur):
             m = Mere(donnees["Marker"][ligne], allele[ligne],
                     hauteur[ligne], None, False)
@@ -771,7 +763,7 @@ def lecture_fichier(path_data_frame,logger):
     return donnees_mere, donnees_foetus, donnees_pere, echantillon_f
 
 
-def homogeneite_type(list_allele, list_hauteur,logger):
+def homogeneite_type(list_allele, list_hauteur):
     """ Allow to convert string into float for Alleles and Height values in order to compute contamination.
 
         Parameters :
@@ -808,15 +800,8 @@ def homogeneite_type(list_allele, list_hauteur,logger):
         logger.error("Homogénéisation impossible",exc_info=True)
         sys.exit()
         
-def log():
-    heure = datetime.now()
-    heure_vrai = heure.strftime("%d-%m-%Y %H:%M")
-    logging.basicConfig(filename='app.log', filemode='w',format='%(name)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
-    return logger
 
 
 if __name__ == "__main__":
-    logger = log()
-    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt',logger)
-    resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P,logger)
+    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
+    resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
