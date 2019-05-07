@@ -182,16 +182,16 @@ class Echantillon:
             try:
                 logger.info("Traitements des marqueurs\n")
                 for nbre_lignes in range(1, len(mere)):
-                    logger.info("Traitement du marqueur : "f'{str(foetus[nbre_lignes].marqueur)}')
+                    logger.info("Traitement du marqueur : " + str(foetus[nbre_lignes].marqueur))
                     pic = foetus[nbre_lignes].foetus_pics()
                     logger.info("Calcul du nombre d'allèles pour le foetus")
-                    logger.info("Nombre d'allèles pour le foetus : "f'{str(pic)}')
+                    logger.info("Nombre d'allèles pour le foetus : " + str(pic))
                     logger.info("Vérification de l'homozygotie de la mère")
                     mere[nbre_lignes].homozygotie()
-                    logger.info("Mère homozygote : "f'{str(mere[nbre_lignes].homozygote)}')
+                    logger.info("Mère homozygote : " + str(mere[nbre_lignes].homozygote))
                     logger.info("Vérification si mère et foetus possèdent les mêmes allèles")
                     foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
-                    logger.info("Code informatif vérification allèles semblables à la mère : "f'{str(foetus[nbre_lignes].informatif)}')
+                    logger.info("Code informatif vérification allèles semblables à la mère : " + str(foetus[nbre_lignes].informatif))
                     logger.info("Initialisation du taux de contamination pour calcul à venir")
                     logger.info("Taux initialisé")
                     foetus[nbre_lignes].taux = 0.0
@@ -201,7 +201,7 @@ class Echantillon:
                     if foetus[nbre_lignes].informatif != 2:
                         logger.info("Vérification si écho")
                         mere[nbre_lignes].echo(foetus[nbre_lignes])
-                        logger.info("Code informatif pour vérification écho retourné : "f'{str(foetus[nbre_lignes].informatif)}')
+                        logger.info("Code informatif pour vérification écho retourné : " + str(foetus[nbre_lignes].informatif))
                     logger.info("Début chaîne de traitement")
                     if pic == 3:
                         logger.info("Trois allèles détectés")
@@ -243,8 +243,8 @@ class Echantillon:
                             foetus[nbre_lignes].contamination = 0
                     logger.info("Marqueur suivant\n")
                 logger.info("Détermination contamination pour échantillon")
-                logger.info("Prise en compte du marqueur si contamination >"f'{str(self.seuil_taux_conta)}%')
-                logger.info("Echantillon contaminé si plus de "f'{str(self.seuil_taux_conta)} marqueurs contaminés')
+                logger.info("Prise en compte du marqueur si contamination >" + str(self.seuil_taux_conta) + "%")
+                logger.info("Echantillon contaminé si plus de " + str(self.seuil_taux_conta) + "marqueurs contaminés")
                 self.conclusion_echantillon(foetus)
                 logger.info("Détermination contamination pour échantillon terminée")
                 logger.info("Fin de traitement")
@@ -282,7 +282,7 @@ class Echantillon:
                 - second one containing global information about sample (Number of informative markers, contaminated markers and free contaminated markers)
 
         """
-        resultat = {"Marqueur": [], "Conclusions": [], "Concordance Mere/Foetus": [], "Détails M/F": [],
+        resultat = {"Marqueur": [], "Conclusion": [], "Concordance Mere/Foetus": [], "Détails M/F": [],
                     "Concordance Pere/Foetus": [], "Détails P/F": []}
         marqueurs_conta = 0
         marqueurs_non_conta = 0
@@ -299,7 +299,7 @@ class Echantillon:
         try:
             if concordance_mf != len(liste_F) and concordance_pf != len(liste_F) or concordance_mf != len(
                     liste_F) and concordance_pf != None:
-                del resultat["Conclusions"]
+                del resultat["Conclusion"]
                 self.set_concordance_mere_foet("NON")
                 self.set_concordance_pere_foet("NON")
                 if concordance_pf == None:
@@ -308,8 +308,8 @@ class Echantillon:
                     self.set_concordance_pere_foet("ABS")
                     del resultat["Concordance Pere/Foetus"]
                     del resultat["Détails P/F"]
-                    logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
-                    logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                    logger.info("Concordance mère/foetus : " + str(self.get_concordance_mere_foet()))
+                    logger.info("Concordance père/foetus : " + str(self.get_concordance_pere_foet()))
                     logger.info("Répertoriation des marqueurs non concordants")
                     for nbres in range(1, len(liste_F)):
                         resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
@@ -330,8 +330,8 @@ class Echantillon:
                     logger.info("Résultats renvoyés et prêts pour affichage")
                     return resultats, conclusion
                 else:
-                    logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
-                    logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                    logger.info("Concordance mère/foetus : " + str(self.get_concordance_mere_foet()))
+                    logger.info("Concordance père/foetus : " + str(self.get_concordance_pere_foet()))
                     logger.info("Répertoration des marqueurs non concordants")
                     for nbres in range(1, len(liste_F)):
                         resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
@@ -375,10 +375,10 @@ class Echantillon:
                 self.set_concordance_pere_foet("OUI")
                 if concordance_pf == None:
                     self.set_concordance_pere_foet("ABS")
-                logger.info("Concordance mère/foetus : "f'{self.get_concordance_mere_foet()}')
-                logger.info("Concordance père/foetus : "f'{self.get_concordance_pere_foet()}')
+                logger.info("Concordance mère/foetus : " + str(self.get_concordance_mere_foet()))
+                logger.info("Concordance père/foetus : " + str(self.get_concordance_pere_foet()))
                 logger.info("Répertoration des marqueurs non concordants")
-                del resultat["Conclusions"]
+                del resultat["Conclusion"]
                 del resultat["Concordance Pere/Foetus"]
                 del resultat["Détails P/F"]
                 for nbres in range(1, len(liste_F)):
@@ -411,30 +411,30 @@ class Echantillon:
                 for nbres in range(1, len(liste_F)):
                     resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                     if liste_F[nbres].informatif == 0:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Mère homozygote")
                     elif liste_F[nbres].informatif == 1:
                         if liste_F[nbres].contamination == 0:
                             marqueurs_non_conta += 1
-                            resultat["Conclusions"].append("Non contaminé")
+                            resultat["Conclusion"].append("Non contaminé")
                             resultat["Détails M/F"].append("")
                         elif liste_F[nbres].contamination == 1:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
-                            resultat["Conclusions"].append("Contaminé")
+                            resultat["Conclusion"].append("Contaminé")
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
-                            resultat["Conclusions"].append("Contaminé")
+                            resultat["Conclusion"].append("Contaminé")
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Allèles semblables à la mère")
                     else:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
-                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusions", "Détails M/F"])
+                resultats = pd.DataFrame(resultat, columns=["Marqueur", "Conclusion", "Détails M/F"])
                 try:
                     moyenne_conta = somme_conta / marqueurs_conta
                 except ZeroDivisionError:
@@ -460,31 +460,31 @@ class Echantillon:
                 for nbres in range(1, len(liste_F)):
                     resultat["Marqueur"].append(str(liste_F[nbres].marqueur))
                     if liste_F[nbres].informatif == 0:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Mère homozygote")
                     elif liste_F[nbres].informatif == 1:
                         if liste_F[nbres].contamination == 0:
                             marqueurs_non_conta += 1
-                            resultat["Conclusions"].append("Non contaminé")
+                            resultat["Conclusion"].append("Non contaminé")
                             resultat["Détails M/F"].append("")
                         elif liste_F[nbres].contamination == 1:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
-                            resultat["Conclusions"].append("Contaminé")
+                            resultat["Conclusion"].append("Contaminé")
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
-                            resultat["Conclusions"].append("Contaminé")
+                            resultat["Conclusion"].append("Contaminé")
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Allèles semblables à la mère")
                     else:
-                        resultat["Conclusions"].append("Non informatif")
+                        resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
                 resultats = pd.DataFrame(resultat,
-                                         columns=["Marqueur", "Conclusions", "Détails M/F", "Concordance Pere/Foetus",
+                                         columns=["Marqueur", "Conclusion", "Détails M/F", "Concordance Pere/Foetus",
                                                   "Détails P/F"])
             try:
                 moyenne_conta = somme_conta / marqueurs_conta
