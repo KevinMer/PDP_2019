@@ -57,13 +57,16 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
     Decision_contamination=get_contamination(choix_utilisateur, nom_utilisateur)
     return nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Decision_contamination,nb_info_Nconta,nb_info_Conta,moy_conta
 
-'''Création feuille  pdf'''
+'''Création feuille pdf'''
 
-
-def init_pdf(path,filename):
-
-    canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
-    
+def init_pdf(path,filename,Concordance_mf, Concordance_pf):
+    if Concordance_mf=="OUI":
+        canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
+    else:
+        canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=A4)
+        
+    o=canv.getAvailableFonts()
+    print(o)
     return canv
 
 
@@ -72,7 +75,7 @@ def init_pdf(path,filename):
 def colonne_marqueur(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
-    return Paragraph("<para align=center spaceb=3><font size=12><b>"+mot+"</b></font></para>",style)
+    return Paragraph("<para align=center spaceb=15> <font size=9><b>"+mot+"</b></font></para>",style)
 
 def colonne(mot):
     styles = getSampleStyleSheet()
@@ -82,21 +85,26 @@ def colonne(mot):
 def diagnos(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
-    if mot=="Contaminé" or mot=="NON" :
-        return Paragraph("<para align=center spaceb=3><font size=12><font color=red>"+mot+"</font></font></para>",style)
-    if mot=="Non contaminé" or mot=="OUI":
-        return Paragraph("<para align=center spaceb=3><font size=12><font color=green>"+mot+"</font></font></para>",style)
-    if mot[0:4]=="Taux":
-        mot=mot[20:]
-        return Paragraph("<para align=center spaceb=3><font size=12><font color=red>"+mot+"</font></font></para>",style)
+    if mot==None:
+        return
     else:
-        return Paragraph("<para align=center spaceb=3><font size=12>"+mot+"</font></para>",style)
+        if mot=="Contaminé" or mot=="NON" :
+            return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
+        if mot=="Non contaminé" or mot=="OUI":
+            return Paragraph("<para align=center spaceb=3><font size=11><font color=green>"+mot+"</font></font></para>",style)
+        if mot[0:4]=="Taux":
+            mot=mot[20:]
+            return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
+        if mot=="Informatif":
+            return Paragraph("<para align=center spaceb=3><font size=10><b>"+mot+"</b></font></para>",style)
+        else:
+            return Paragraph("<para align=center spaceb=3><font size=10>"+mot+"</font></para>",style)
 
 def posinega(mot):
     if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
-        return "<font color=green>"+mot+"</font>"
+        return "<font color=green><font size=13>"+mot+"</font></font>"
     if mot != "ABS":
-        return "<font color=red>"+mot+"</font>"
+        return "<font color=red><font size=13>"+mot+"</font></font>"
     return mot
 
 '''Création des flowables et définition du style graphique sauf pour tableau central'''
@@ -134,31 +142,37 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
     no_version = Paragraph("<font size=12><b>"+version+"</b></font>",style)
     doc = Paragraph("<para align=center spaceb=3><font size=12>DOCUMENT D’ENREGISTREMENT</font></para>",style)
     page = Paragraph("<font size=12>Page : 1/1</font>",style)
-    chu_titre = Paragraph("<para align=center spaceb=3><b><font size=16><font color=white>Feuille de résultats Recherche de contamination maternelle Kit PowerPlex 16 ® </font></font></b></para>",styles["Title"])
+    chu_titre = Paragraph("<para align=center spaceb=3><b><font size=15><font color=white>Feuille de résultats Recherche de contamination maternelle Kit PowerPlex 16 ® </font></font></b></para>",styles["Title"])
 
-    chu_tab = [[CHU,[entite,emetteur],"","","","","","","","","","",no_version],
-               ["",doc,"","","","","","","","","","",page],
-               [chu_titre,"","","","","","","","","","","",""]]
-    CHU_HEADER = Table(chu_tab)
+
+    chu_tab = [[CHU,[entite,emetteur],"","","",no_version],
+               ["",doc,"","","",page],
+               [chu_titre,"","","","",""]]
+    if Concordance_pf=="NON" or Concordance_mf=="NON" :
+        CHU_HEADER = Table(chu_tab,colWidths=3.4*cm, rowHeights=1*cm)
+    else:
+        CHU_HEADER = Table(chu_tab,colWidths=4.65*cm, rowHeights=1*cm)
     CHU_HEADER.setStyle(TableStyle([("BOX", (0, 0), (-1,-1), 1, colors.black),
-                                    ('SPAN',(1,0),(11,0)),
-                                    ('SPAN',(1,1),(11,1)),
-                                    ('SPAN',(1,2),(11,2)),
-                                    ('SPAN',(0,2),(12,2)),
+                                    ('SPAN',(1,0),(4,0)),
+                                    ('SPAN',(1,1),(4,1)),
+                                    ('SPAN',(0,2),(5,2)),
                                     ('SPAN',(0,0),(0,1)),
-                                    ('BACKGROUND',(0,2),(12,2),colors.lightgrey),
-                                    ('LINEABOVE',(0,2),(12,2),1.5,colors.white),
-                                    ('VALIGN',(0,0),(3,2),'MIDDLE'),
+                                    ('BACKGROUND',(0,2),(5,2),colors.lightgrey),
+                                    ('LINEABOVE',(0,2),(4,2),1.5,colors.white),
+                                    ('VALIGN',(1,0),(3,2),'MIDDLE'),
+                                    ('VALIGN',(4,0),(5,1),'MIDDLE'),
                                     ('ALIGN',(0,0),(3,2),'CENTER'),
-                                    ('ALIGN',(0,2),(2,2),'CENTER'),
                                     ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black)]))
     
-    P0=Paragraph("<para align=center spaceb=3><b><font size=14><font color=darkblue> Étude de la contamination materno-foetale et de la bonne identité des ADN lors de la réalisation d’un diagnostic prénatal à l’aide du kit PowerPlex ® 16 System </font></font></b></para>", style)
-    Titre = [[LOGO,P0,"","","","","","","","","",""]]
+    P0=Paragraph("<para align=center spaceb=3><b><font size=13><font color=darkblue> Étude de la contamination materno-foetale et de la bonne identité des ADN lors de la réalisation d’un diagnostic prénatal à l’aide du kit PowerPlex ® 16 System </font></font></b></para>", style)
+    Titre = [[LOGO,P0,"","","","","","","","",""]]
     
-    HEADER = Table(Titre)
+    if Concordance_pf=="NON" or Concordance_mf=="NON" :
+        HEADER = Table(Titre,colWidths=1.85*cm)
+    else:
+        HEADER = Table(Titre,colWidths=2.53*cm)
     HEADER.setStyle(TableStyle([("BOX", (0, 0), (-1,0), 0.25, colors.HexColor(0x003d99)),
-                                ('SPAN',(1,0),(11,0)),
+                                ('SPAN',(1,0),(10,0)),
                                 ('VALIGN',(1,0),(1,0),'MIDDLE'),
                                 ('ALIGN',(0,0),(1,0),'CENTER'),
                                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
@@ -167,7 +181,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
 
     if Concordance_mf=="OUI": 
         if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
-            data = [ [colonne("Marqueur"),colonne("Contamination materno-fœtale"),"","",""],
+            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","",""],
                      ["",colonne("Informativité"),colonne("Résultat"),colonne("Pourcentage de contamination"),colonne("Détails")],
                      [colonne_marqueur("CSF1PO"),"","","",""],
                      [colonne_marqueur("D13S317"),"","","",""],
@@ -185,44 +199,8 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("TPOX"),"","","",""],
                      [colonne_marqueur("vWA"),"","","",""]]
         else:
-            data = [ [colonne("Marqueur"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordance des ADN paternelles et fœtals"),"",""],
-                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordance Père/Fœtus"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
-                     [colonne_marqueur("CSF1PO"),"","","","","","",""],
-                     [colonne_marqueur("D13S317"),"","","","","","",""],
-                     [colonne_marqueur("D16S539"),"","","","","","",""],
-                     [colonne_marqueur("D18S51"),"","","","","","",""],
-                     [colonne_marqueur("D21S11"),"","","","","","",""],
-                     [colonne_marqueur("D3S1358"),"","","","","","",""],
-                     [colonne_marqueur("D5S818"),"","","","","","",""],
-                     [colonne_marqueur("D7S820"),"","","","","","",""],
-                     [colonne_marqueur("D8S1179"),"","","","","","",""],
-                     [colonne_marqueur("FGA"),"","","","","","",""],
-                     [colonne_marqueur("Penta D"),"","","","","","",""],
-                     [colonne_marqueur("Penta E"),"","","","","","",""],
-                     [colonne_marqueur("THO1"),"","","","","","",""],
-                     [colonne_marqueur("TPOX"),"","","","","","",""],
-                     [colonne_marqueur("vWA"),"","","","","","",""]]
-        
-    else: 
-        if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
-           data = [ [colonne("Marqueurs"),colonne("Concordances des \nADN maternelles et fœtal"),colonne("Détails allèle mère"),colonne("Détails allèle fœtus")],
-                     [colonne_marqueur("CSF1PO"),"","",""],
-                     [colonne_marqueur("D13S317"),"","",""],
-                     [colonne_marqueur("D16S539"),"","",""],
-                     [colonne_marqueur("D18S51"),"","",""],
-                     [colonne_marqueur("D21S11"),"","",""],
-                     [colonne_marqueur("D3S1358"),"","",""],
-                     [colonne_marqueur("D5S818"),"","",""],
-                     [colonne_marqueur("D7S820"),"","",""],
-                     [colonne_marqueur("D8S1179"),"","",""],
-                     [colonne_marqueur("FGA"),"","",""],
-                     [colonne_marqueur("Penta D"),"","",""],
-                     [colonne_marqueur("Penta E"),"","",""],
-                     [colonne_marqueur("THO1"),"","",""],
-                     [colonne_marqueur("TPOX"),"","",""],
-                     [colonne_marqueur("vWA"),"","",""]]
-        else:
-             data = [ [colonne("Marqueur"),colonne("Concordance des\n ADN maternelles et fœtals"),colonne("Détails allèles mère"),colonne("Détails allèles fœtus"),colonne("Concordance des \nADN paternelles et fœtals"),colonne("Détails allèles père"),colonne("Détails allèles fœtus")],
+            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordance des ADN paternelles et fœtals"),"",""],
+                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordance Père/Fœtus"),colonne("Détails allèles père et foetus")],
                      [colonne_marqueur("CSF1PO"),"","","","","",""],
                      [colonne_marqueur("D13S317"),"","","","","",""],
                      [colonne_marqueur("D16S539"),"","","","","",""],
@@ -238,6 +216,42 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("THO1"),"","","","","",""],
                      [colonne_marqueur("TPOX"),"","","","","",""],
                      [colonne_marqueur("vWA"),"","","","","",""]]
+        
+    else: 
+        if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
+           data = [ [colonne("Marqueurs"),colonne("Concordances des ADN maternelles et fœtal"),colonne("Détails allèles mère et fœtus")],
+                     [colonne_marqueur("CSF1PO"),"",""],
+                     [colonne_marqueur("D13S317"),"",""],
+                     [colonne_marqueur("D16S539"),"",""],
+                     [colonne_marqueur("D18S51"),"",""],
+                     [colonne_marqueur("D21S11"),"",""],
+                     [colonne_marqueur("D3S1358"),"",""],
+                     [colonne_marqueur("D5S818"),"",""],
+                     [colonne_marqueur("D7S820"),"",""],
+                     [colonne_marqueur("D8S1179"),"",""],
+                     [colonne_marqueur("FGA"),"",""],
+                     [colonne_marqueur("Penta D"),"",""],
+                     [colonne_marqueur("Penta E"),"",""],
+                     [colonne_marqueur("THO1"),"",""],
+                     [colonne_marqueur("TPOX"),"",""],
+                     [colonne_marqueur("vWA"),"",""]]
+        else:
+             data = [ [colonne("Marqueurs"),colonne("Concordance des ADN maternelles et fœtals"),colonne("Détails allèles mère et fœtus"),colonne("Concordance des ADN paternelles et fœtals"),colonne("Détails allèles père et fœtus")],
+                     [colonne_marqueur("CSF1PO"),"","","",""],
+                     [colonne_marqueur("D13S317"),"","","",""],
+                     [colonne_marqueur("D16S539"),"","","",""],
+                     [colonne_marqueur("D18S51"),"","","",""],
+                     [colonne_marqueur("D21S11"),"","","",""],
+                     [colonne_marqueur("D3S1358"),"","","",""],
+                     [colonne_marqueur("D5S818"),"","","",""],
+                     [colonne_marqueur("D7S820"),"","","",""],
+                     [colonne_marqueur("D8S1179"),"","","",""],
+                     [colonne_marqueur("FGA"),"","","",""],
+                     [colonne_marqueur("Penta D"),"","","",""],
+                     [colonne_marqueur("Penta E"),"","","",""],
+                     [colonne_marqueur("THO1"),"","","",""],
+                     [colonne_marqueur("TPOX"),"","","",""],
+                     [colonne_marqueur("vWA"),"","","",""]]
              
              
     return CHU_HEADER,HEADER,data
@@ -252,6 +266,8 @@ def profil_allelique(string):
     alleles_p (string) : alleles of the parent
     alleles_f (string) : alleles of the foetus
     '''
+    styles = getSampleStyleSheet()
+    style = styles["BodyText"]
     alleles_f=""
     alleles_p=""
     nb_allele=0
@@ -265,7 +281,9 @@ def profil_allelique(string):
                     alleles_p=alleles_p+string[j]
                 else:
                     alleles_f=alleles_f+string[j]
-    return alleles_p,alleles_f
+    profil_all_p = Paragraph("<para align=center spaceb=3><font size=10><font color=grey>"+alleles_p+"</font></font></para>",style)
+    profil_all_f = Paragraph("<para align=center spaceb=3><font size=10>"+alleles_f+"</font></para>",style)
+    return [profil_all_p,profil_all_f]
   
 '''Remplissage du tableau principal avec Analyse'''
     
@@ -280,18 +298,20 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
        output : 
     None
     '''
+    ligne_informative=[]
     if Concordance_mf=="OUI":
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(2,len(data)):
                 if dataframe["Conclusion"][marqueurs-2] == "Non informatif":
-                     data[marqueurs][1] = dataframe["Conclusion"][marqueurs-2]
+                     data[marqueurs][1] = diagnos(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][2] = " / "
                      data[marqueurs][3] = " / "
                 else:
-                     data[marqueurs][1] = "OK"
+                     data[marqueurs][1] = diagnos("Informatif")
                      data[marqueurs][2] = diagnos(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][3] = " / "
-                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
+                     ligne_informative.append(marqueurs)
+                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables à la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
                     data[marqueurs][3] = diagnos(dataframe["Détails M/F"][marqueurs-2])
                     data[marqueurs][4] = " / "
                 else:
@@ -306,10 +326,11 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                      data[marqueurs][2] = " / "
                      data[marqueurs][3] = " / "
                 else:
-                     data[marqueurs][1] = "OK"
+                     ligne_informative.append(marqueurs)
+                     data[marqueurs][1] = diagnos("Informatif")
                      data[marqueurs][2] = diagnos(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][3] = " / "
-                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
+                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables à la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
                      data[marqueurs][3] = diagnos(dataframe["Détails M/F"][marqueurs-2])
                      data[marqueurs][4] = " / "
                 else:
@@ -320,34 +341,36 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                      
                 data[marqueurs][5] = diagnos(dataframe["Concordance Pere/Foetus"][marqueurs-2])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-2]=="NON":
-                    data[marqueurs][6], data[marqueurs][7] = profil_allelique(dataframe["Détails P/F"][marqueurs-2])
+                    data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-2])
                 else:
-                    data[marqueurs][6], data[marqueurs][7] = " / "," / "
+                    data[marqueurs][6] = " / "
     else:
+        ligne_informative=range(2,len(data),2)
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(1,len(data)):
                 data[marqueurs][1] = diagnos(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][2], data[marqueurs][3] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
+                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
                 else:
-                    data[marqueurs][2], data[marqueurs][3] = " / ", " / "
+                    data[marqueurs][2] = " / "
         else:
             for marqueurs in range(1,len(data)):
                 data[marqueurs][1] = diagnos(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][2], data[marqueurs][3] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
+                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
                 else:
-                    data[marqueurs][2], data[marqueurs][3] = " / "," / "
+                    data[marqueurs][2] = " / "
                     
-                data[marqueurs][4] = diagnos(dataframe["Concordance Pere/Foetus"][marqueurs-1])
+                data[marqueurs][3] = diagnos(dataframe["Concordance Pere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][5], data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-1])
+                    data[marqueurs][4] = profil_allelique(dataframe["Détails P/F"][marqueurs-1])
                 else:
-                    data[marqueurs][5], data[marqueurs][6] = " / "," / "
+                    data[marqueurs][4] = " / "
+    return ligne_informative
                 
 '''Définition du style graphique du tableau principal'''
 
-def style_result(data,Concordance_mf, Concordance_pf):
+def style_result(data,Concordance_mf, Concordance_pf,l_info):
     '''input:
     data (matrix) : contain the conclusion for each marker
     Concordance_mf (string) : consistency between the DNA of the mother and the foetus
@@ -357,10 +380,9 @@ def style_result(data,Concordance_mf, Concordance_pf):
        output:
     t (reportlab.platypus.tables.Table) : formatted table containing the conclusion for each marker
     '''
-    t = Table(data)
     if Concordance_mf=="OUI":
-        alternance=range(2,len(data))
         if Concordance_pf=="OUI" or  Concordance_pf=="ABS":
+            t = Table(data)
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('SPAN',(1,0),(4,0)),
                                    ('SPAN',(0,0),(0,1)),
@@ -368,40 +390,37 @@ def style_result(data,Concordance_mf, Concordance_pf):
                                    ('VALIGN',(0,1),(4,1),'MIDDLE'),
                                    ('VALIGN',(0,0),(0,1),'MIDDLE'),
                                    ('VALIGN',(1,0),(1,1),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(5,2),colors.HexColor(0x4b7fd1)),
+                                   ('BACKGROUND',(0,0),(5,1),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
         else:
+            t = Table(data)
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('SPAN',(1,0),(4,0)),
                                    ('SPAN',(0,0),(0,1)),
-                                   ('SPAN',(5,0),(7,0)),
+                                   ('SPAN',(5,0),(6,0)),
                                    ('ALIGN',(0,0),(-1,-1),'CENTER'),
-                                   ('VALIGN',(0,1),(4,1),'MIDDLE'),
-                                   ('VALIGN',(0,0),(0,1),'MIDDLE'),
-                                   ('VALIGN',(1,0),(1,1),'MIDDLE'),
-                                   ('BACKGROUND',(0,0),(7,2),colors.HexColor(0x4b7fd1)),
+                                   ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+                                   ('BACKGROUND',(0,0),(6,1),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003380))]))
     else:
-        alternance=range(1,len(data))
         if Concordance_pf=="OUI" or  Concordance_pf=="ABS":
+            t = Table(data,colWidths=6.3*cm)
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('ALIGN',(0,0),(-1,-1),'CENTER'),
-                                   ('VALIGN',(0,0),(-1,0),'MIDDLE'),
+                                   ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
                                    ('BACKGROUND',(0,0),(3,0),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
         else:
+            
+            t = Table(data,colWidths=4.05*cm)
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('ALIGN',(0,0),(-1,-1),'CENTER'),
-                                   ('VALIGN',(0,0),(-1,0),'MIDDLE'),
+                                   ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
                                    ('BACKGROUND',(0,0),(6,0),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
 
-    for ligne in alternance:
-        if ligne % 2 == 0:
-            bg_color = colors.white
-        else:
-            bg_color = colors.HexColor(0xd1e6fa)
-        t.setStyle(TableStyle([('BACKGROUND', (0, ligne), (-1, ligne), bg_color)]))
+    for ligne in l_info:
+        t.setStyle(TableStyle([('BACKGROUND', (0, ligne), (-1, ligne), colors.HexColor(0xd1e6fa))]))
     return t
 
 '''Placement table et paragraphes dans PDF'''
@@ -411,17 +430,19 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
 
     aW = 780
     aH = 500
+    if Concordance_mf !="OUI":
+        aW = aW-20
+        aH = aH+240
     
     w, h = CHU_HEADER.wrap(aW, aH)
-    CHU_HEADER.drawOn(canv, 30, aH)
+    CHU_HEADER.drawOn(canv, aW-750, aH)
     
-    aW = 780
-    aH = 450
+    aH = aH-50
     
     w, h = HEADER.wrap(aW, aH)
 
 
-    HEADER.drawOn(canv, 30, aH)
+    HEADER.drawOn(canv, aW-750, aH)
     
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
@@ -433,30 +454,38 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     P_no_foetus = Paragraph("<font size=12><font color=darkblue>N° du fœtus : </font>"+nb_foetus+"</font>",style)
     P_no_mere = Paragraph("<font size=12><font color=darkblue>N° de la mère : </font>"+nb_mere+"</font>",style)
     P_no_pere = Paragraph("<font size=12><font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
-
+    if Concordance_mf !="OUI":
+        alignement_col_gauche = 20
+        alignement_col_centre = 180
+        alignement_col_droite = 320
+    else:
+        alignement_col_gauche = 90
+        alignement_col_centre = 300
+        alignement_col_droite = 490
+    
     aH = aH - 10
     w, h = P_date.wrap(aW,aH)
-    P_date.drawOn(canv, 90,aH-h)
+    P_date.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_nom.wrap(aW,aH)
-    P_nom.drawOn(canv, 300,aH-h)
+    P_nom.drawOn(canv, alignement_col_centre,aH-h)
 
     w, h =P_utilisateur.wrap(aW,aH)
-    P_utilisateur.drawOn(canv,490,aH-h)
+    P_utilisateur.drawOn(canv,alignement_col_droite,aH-h)
     
     aH = aH - h
     
     w, h = P_no_foetus.wrap(aW,aH)
-    P_no_foetus.drawOn(canv, 90,aH-h)
+    P_no_foetus.drawOn(canv, alignement_col_centre,aH-h)
     
     w, h = P_sexe.wrap(aW,aH)
-    P_sexe.drawOn(canv, 300,aH-h)
+    P_sexe.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_no_mere.wrap(aW,aH)
-    P_no_mere.drawOn(canv, 490,aH-h)
+    P_no_mere.drawOn(canv, alignement_col_droite,aH-h)
     
     w, h = P_no_pere.wrap(aW,aH)
-    P_no_pere.drawOn(canv, 680,aH-h)
+    P_no_pere.drawOn(canv, alignement_col_droite+160,aH-h)
     
     
     if Concordance_mf=="OUI":#tableau principal
@@ -467,7 +496,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
         else:
             aH = aH - (h+10)
             w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 25, aH-h)
+            t.drawOn(canv, 5, aH-h)
     else:
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             aH = aH - (h+10)
@@ -476,50 +505,47 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
         else:
             aH = aH - (h+10)
             w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 30, aH-h)
+            t.drawOn(canv, 10, aH-h)
 
 
     
-    C = Paragraph("<font size=12><font color=darkblue><b><u>Conclusion</u></b></font></font>",style)
     Par = Paragraph("<font size=12><font color=darkblue><u>Paramètres</u></font></font>",style)
     alignement_col_gauche = 20
     alignement_col_centre = 220
-    alignement_col_droite = 605
+    alignement_col_droite = 580
     
     aH = aH - h
-    w, h = C.wrap(aW, aH)
-    C.drawOn(canv,alignement_col_gauche, aH-h)
-    
     w, h = Par.wrap(aW, aH)
-    Par.drawOn(canv,alignement_col_droite, aH-h)
+    if Concordance_mf=="OUI":
+        Par.drawOn(canv,alignement_col_droite, aH-h)
     
 
     P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+posinega(Concordance_pf)+"</font>",style)
     P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+posinega(Concordance_mf)+"</font>",style)
     if Concordance_mf != "NON":
-        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
-        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
-        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font>"+str(moy_conta)+"</b></font>",style)
+        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
+        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
+        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne des pourcentages de contamination : </font>"+str(moy_conta)+"</b></font>",style)
     else:
-        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs non contaminés : </font><font color=red>"+str(nb_info_Nconta)+"</font></font></b>",style)
-        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Nombre de marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
-        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne du pourcentage de contamination : </font><font color=red>"+str(moy_conta)+"</font></b></font>",style)
+        P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs non contaminés : </font><font color=red>"+str(nb_info_Nconta)+"</font></font></b>",style)
+        P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
+        P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne des pourcentages de contamination : </font><font color=red>"+str(moy_conta)+"</font></b></font>",style)
         
-    P_conta_echantillon = Paragraph("<font size=12><b><font color=darkblue>Contamination : </font>"+posinega(Contamination)+"</b></font>",style)
-    P_seuil_m = Paragraph("<font size=12><font color=darkblue>Seuil minimum de marqueur : </font>"+str(seuil_marqueur)+"</font>",style)
-    P_seuil_h = Paragraph("<font size=12><font color=darkblue>Seuil de hauteur d'un pic: </font>"+str(seuil_pic)+"</font>",style)
-    P_seuil_p = Paragraph("<font size=12><font color=darkblue>Seuil pourcentage de contamination: </font>"+str(seuil_pourcentage)+"</font>",style)
+    P_conta_echantillon = Paragraph("<font size=12><b>"+posinega(Contamination)+"</b></font>",style)
+    P_seuil_m = Paragraph("<font size=12><font color=darkblue>N : </font>"+str(seuil_marqueur)+"</font>",style)
+    P_seuil_h = Paragraph("<font size=12><font color=darkblue>H : </font>"+str(seuil_pic)+"</font>",style)
     
 
-    aH = aH - (h+5)
+    aH = aH - h
     w, h = P_concordance_m.wrap(aW,aH)
     P_concordance_m.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_nb_Nconta.wrap(aW,aH)
     P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
 
-    w, h = P_seuil_m.wrap(aW,aH)
-    P_seuil_m.drawOn(canv, alignement_col_droite,aH-h)
+    if Concordance_mf=="OUI":
+        w, h = P_seuil_m.wrap(aW,aH)
+        P_seuil_m.drawOn(canv, alignement_col_droite,aH-h)
     
     aH = aH - (h+10)
     if Concordance_pf != "ABS":
@@ -529,20 +555,31 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     w, h = P_nb_conta.wrap(aW,aH)
     P_nb_conta.drawOn(canv, alignement_col_centre,aH-(h-10))
 
-    w, h =P_seuil_h.wrap(aW,aH)
-    P_seuil_h.drawOn(canv, alignement_col_droite,aH-(h-10))
+    if Concordance_mf=="OUI":
+        w, h =P_seuil_h.wrap(aW,aH)
+        P_seuil_h.drawOn(canv, alignement_col_droite,aH-(h-10))
 
     aH = aH - h
     w, h = P_moy.wrap(aW,aH)
     P_moy.drawOn(canv, alignement_col_centre,aH-(h-10))
-
-    w, h =P_seuil_p.wrap(aW,aH)
-    P_seuil_p.drawOn(canv, alignement_col_droite,aH-(h-10))
+        
     
     aH = aH - h
     w, h = P_conta_echantillon.wrap(aW,aH)
     P_conta_echantillon.drawOn(canv, alignement_col_gauche,aH-h)
-    
+
+    if Concordance_mf !="OUI":
+        aH = aH - h
+        Par.drawOn(canv,alignement_col_centre, aH)
+        aH = aH - h
+        w, h = P_seuil_m.wrap(aW,aH)
+        P_seuil_m.drawOn(canv, alignement_col_centre,aH)
+        
+        aH = aH - h
+        w, h =P_seuil_h.wrap(aW,aH)
+        P_seuil_h.drawOn(canv, alignement_col_centre,aH)
+        
+
     canv.save()
 
 
@@ -576,23 +613,28 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
     
     nom,nb_mere,nb_foetus,nb_pere,date,Sexe,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta = def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere,Sexe,dataframe,det_dataframe,choix_utilisateur, nom_utilisateur,presence_pere)
     
-    canv = init_pdf(path,nom_pdf)
+    canv = init_pdf(path,nom_pdf,Concordance_mf, Concordance_pf)
     
     CHU_HEADER,HEADER,data = creat_struct_pdf(Concordance_mf, Concordance_pf, Entite_d_Application,Emetteur,version)
 
-    resultats(data,dataframe,Concordance_mf, Concordance_pf)
+    l_info = resultats(data,dataframe,Concordance_mf, Concordance_pf)
 
-    t=style_result(data,Concordance_mf, Concordance_pf)
+    t=style_result(data,Concordance_mf, Concordance_pf, l_info)
 
     disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
 
 
 if __name__ == "__main__":
-    from Traitement3 import*
-
-    M, F, P, Echantillon_F, log = lecture_fichier("PP16_XFra_FAURE_290119_PP16.txt")
+    from Traitement2 import*
+    n_conc = "exemple_absence_totale_concordance.txt"
+    ex_non_conta = "PP16_XFra_FAURE_290119_PP16.txt"
+    ex_conta = "2018-03-27 foetus 90-10_PP16.txt"
+    ex = ""
+    ex_n_conc_pere = "non_concordance_pere.txt"
+    ex_n_conc_mere_erreur = "181985_xfra_ja_200618_PP16.txt"
+    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
     path = ""
-    dataframe, det_dataframe, log = Echantillon_F.analyse_donnees(M,F,P,log)
+    dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
     nom_projet="Projet"
     nom_fichier_mere="Mere"
     nom_fichier_foetus="Foetus"
@@ -607,7 +649,7 @@ if __name__ == "__main__":
     seuil_pic = 42
     seuil_marqueur = 4
     seuil_pourcentage = 0.42
-    presence_pere = "CACA"
+    presence_pere = "OUI"
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
