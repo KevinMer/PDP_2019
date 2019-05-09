@@ -337,7 +337,7 @@ class EcranFctMethod(GridLayout):
     def load(self, path, filename):
         #traitement du fichier
         try:
-            M, F, P, Echantillon_F, log = Traitement2.lecture_fichier(os.path.join(path, filename[0]))
+            M, F, P, Echantillon_F ,log= Traitement2.lecture_fichier(os.path.join(path, filename[0]))
             
         
             Echantillon_F.set_seuil_hauteur(eval(self.hauteur))
