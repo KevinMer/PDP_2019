@@ -153,13 +153,12 @@ class Echantillon:
                 for alleles in range(len(foetus)):
                     for allele_foetus in range(3):
                         if foetus[alleles].allele[allele_foetus] in pere[alleles].allele:
-                            if foetus[alleles].allele[allele_foetus] != 0.0:
+                            if foetus[alleles].allele[allele_foetus] != 0.0:    
                                 pere[alleles].concordance_pere_foetus = "OUI"
                                 concordance_pf = concordance_pf + 1
                                 break
-                            else:
-                                pere[alleles].concordance_pere_foetus = "NON"
-                                break
+                        else:
+                            pere[alleles].concordance_pere_foetus = "NON"
             logger.info("Vérification concordance des ADNs entre mère et foetus")
             for alleles in range(len(foetus)):
                 for allele_foetus in range(3):
@@ -168,9 +167,8 @@ class Echantillon:
                             foetus[alleles].concordance_mere_foetus = "OUI"
                             concordance_mf = concordance_mf + 1
                             break
-                        else:
-                            foetus[alleles].concordance_mere_foetus = "NON"
-                            break
+                    else:
+                        foetus[alleles].concordance_mere_foetus = "NON"
         except Exception as e:
             logger.error("Vérification concordance ADN impossible", exc_info=True)
 
