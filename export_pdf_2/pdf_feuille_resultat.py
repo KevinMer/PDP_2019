@@ -60,10 +60,10 @@ def def_variable(nom_projet,nom_fichier_mere,nom_fichier_foetus,nom_fichier_pere
 '''Création feuille pdf'''
 
 def init_pdf(path,filename,Concordance_mf, Concordance_pf):
-    if Concordance_mf=="OUI":
-        canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
-    else:
+    if Concordance_mf=="NON" or Concordance_pf=="NON":
         canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=A4)
+    else:
+        canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
         
     o=canv.getAvailableFonts()
     print(o)
@@ -98,7 +98,7 @@ def diagnos(mot):
         if mot=="Informatif":
             return Paragraph("<para align=center spaceb=3><font size=10><b>"+mot+"</b></font></para>",style)
         else:
-            return Paragraph("<para align=center spaceb=3><font size=10>"+mot+"</font></para>",style)
+            return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
 
 def posinega(mot):
     if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
@@ -199,8 +199,8 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("TPOX"),"","","",""],
                      [colonne_marqueur("vWA"),"","","",""]]
         else:
-            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordance des ADN paternelles et fœtals"),"",""],
-                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Contamination"),colonne("Détails M/F"),colonne("Concordance Père/Fœtus"),colonne("Détails allèles père et foetus")],
+            data = [ [colonne("Marqueurs"),colonne("Contamination materno-fœtale"),"","","",colonne("Concordance des ADN"),""],
+                     ["",colonne("Informativité"),colonne("Résultat"),colonne("Contamination"),colonne("Détails Mère/Fœtus"),colonne("Père/Fœtus"),colonne("Détails allèles père et fœtus")],
                      [colonne_marqueur("CSF1PO"),"","","","","",""],
                      [colonne_marqueur("D13S317"),"","","","","",""],
                      [colonne_marqueur("D16S539"),"","","","","",""],
@@ -322,7 +322,7 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
         else:
             for marqueurs in range(2,len(data)):
                 if dataframe["Conclusion"][marqueurs-2] == "Non informatif":
-                     data[marqueurs][1] = dataframe["Conclusion"][marqueurs-2]
+                     data[marqueurs][1] = diagnos(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][2] = " / "
                      data[marqueurs][3] = " / "
                 else:
@@ -335,7 +335,7 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                      data[marqueurs][4] = " / "
                 else:
                      data[marqueurs][3] = " / "
-                     data[marqueurs][4] = dataframe["Détails M/F"][marqueurs-2]
+                     data[marqueurs][4] = diagnos(dataframe["Détails M/F"][marqueurs-2])
                 if data[marqueurs][3] == "":
                      data[marqueurs][3] =" / "
                      
@@ -393,7 +393,7 @@ def style_result(data,Concordance_mf, Concordance_pf,l_info):
                                    ('BACKGROUND',(0,0),(5,1),colors.HexColor(0x4b7fd1)),
                                    ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99))]))
         else:
-            t = Table(data)
+            t = Table(data,colWidths=[2.59*cm,3*cm,2.4*cm,3.4*cm,3.5*cm,2.76*cm,2.95*cm], rowHeights=[1*cm]+[1.4*cm]+[1.2*cm]*15)
             t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor(0x003d99)),
                                    ('SPAN',(1,0),(4,0)),
                                    ('SPAN',(0,0),(0,1)),
@@ -426,11 +426,11 @@ def style_result(data,Concordance_mf, Concordance_pf,l_info):
 '''Placement table et paragraphes dans PDF'''
 
 
-def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
+def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
 
     aW = 780
     aH = 500
-    if Concordance_mf !="OUI":
+    if Concordance_mf=="NON" or Concordance_pf=="NON":
         aW = aW-20
         aH = aH+240
     
@@ -454,14 +454,18 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     P_no_foetus = Paragraph("<font size=12><font color=darkblue>N° du fœtus : </font>"+nb_foetus+"</font>",style)
     P_no_mere = Paragraph("<font size=12><font color=darkblue>N° de la mère : </font>"+nb_mere+"</font>",style)
     P_no_pere = Paragraph("<font size=12><font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
-    if Concordance_mf !="OUI":
-        alignement_col_gauche = 20
-        alignement_col_centre = 180
-        alignement_col_droite = 320
+    if Concordance_mf=="NON" or Concordance_pf=="NON":
+        alignement_col_gauche = 10
+        alignement_col_centre = 155
+        alignement_col_droite = 340
+        align_mere = 300
+        align_pere = 460
     else:
-        alignement_col_gauche = 90
-        alignement_col_centre = 300
+        alignement_col_gauche = 60
+        alignement_col_centre = 220
         alignement_col_droite = 490
+        align_mere = 420
+        align_pere = 640
     
     aH = aH - 10
     w, h = P_date.wrap(aW,aH)
@@ -482,30 +486,30 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     P_sexe.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_no_mere.wrap(aW,aH)
-    P_no_mere.drawOn(canv, alignement_col_droite,aH-h)
+    P_no_mere.drawOn(canv,align_mere,aH-h)
     
     w, h = P_no_pere.wrap(aW,aH)
-    P_no_pere.drawOn(canv, alignement_col_droite+160,aH-h)
+    P_no_pere.drawOn(canv,align_pere,aH-h)
     
     
-    if Concordance_mf=="OUI":#tableau principal
+    if Concordance_mf=="OUI":#tableau_principalableau principal
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             aH = aH - (h+10)
-            w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 30, aH-h)
+            w, h = tableau_principal.wrap(aW, aH)
+            tableau_principal.drawOn(canv, 30, aH-h)
         else:
             aH = aH - (h+10)
-            w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 5, aH-h)
+            w, h = tableau_principal.wrap(aW, aH)
+            tableau_principal.drawOn(canv,5, aH-h)
     else:
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             aH = aH - (h+10)
-            w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 30, aH-h)
+            w, h = tableau_principal.wrap(aW, aH)
+            tableau_principal.drawOn(canv, 30, aH-h)
         else:
             aH = aH - (h+10)
-            w, h = t.wrap(aW, aH)
-            t.drawOn(canv, 10, aH-h)
+            w, h = tableau_principal.wrap(aW, aH)
+            tableau_principal.drawOn(canv, 10, aH-h)
 
 
     
@@ -516,7 +520,9 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     
     aH = aH - h
     w, h = Par.wrap(aW, aH)
-    if Concordance_mf=="OUI":
+    if Concordance_mf == "OUI" and Concordance_pf == "NON":
+        Par.drawOn(canv,500, aH-h)
+    elif Concordance_mf=="OUI":
         Par.drawOn(canv,alignement_col_droite, aH-h)
     
 
@@ -543,7 +549,10 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     w, h = P_nb_Nconta.wrap(aW,aH)
     P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
 
-    if Concordance_mf=="OUI":
+    if Concordance_mf == "OUI" and Concordance_pf == "NON":
+        w, h = P_seuil_m.wrap(aW,aH)
+        P_seuil_m.drawOn(canv, 505,aH-h)
+    elif Concordance_mf=="OUI":
         w, h = P_seuil_m.wrap(aW,aH)
         P_seuil_m.drawOn(canv, alignement_col_droite,aH-h)
     
@@ -555,7 +564,10 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     w, h = P_nb_conta.wrap(aW,aH)
     P_nb_conta.drawOn(canv, alignement_col_centre,aH-(h-10))
 
-    if Concordance_mf=="OUI":
+    if Concordance_mf == "OUI" and Concordance_pf == "NON":
+        w, h =P_seuil_h.wrap(aW,aH)
+        P_seuil_h.drawOn(canv, 505,aH-(h-10))
+    elif Concordance_mf=="OUI":
         w, h =P_seuil_h.wrap(aW,aH)
         P_seuil_h.drawOn(canv, alignement_col_droite,aH-(h-10))
 
@@ -564,20 +576,20 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Con
     P_moy.drawOn(canv, alignement_col_centre,aH-(h-10))
         
     
-    aH = aH - h
+    aH = aH - 5
     w, h = P_conta_echantillon.wrap(aW,aH)
     P_conta_echantillon.drawOn(canv, alignement_col_gauche,aH-h)
 
-    if Concordance_mf !="OUI":
-        aH = aH - h
-        Par.drawOn(canv,alignement_col_centre, aH)
+    if Concordance_mf == "NON":
+        aH = aH - (h*2+2)
+        Par.drawOn(canv,alignement_col_gauche, aH)
         aH = aH - h
         w, h = P_seuil_m.wrap(aW,aH)
-        P_seuil_m.drawOn(canv, alignement_col_centre,aH)
+        P_seuil_m.drawOn(canv, alignement_col_gauche+4,aH)
         
         aH = aH - h
         w, h =P_seuil_h.wrap(aW,aH)
-        P_seuil_h.drawOn(canv, alignement_col_centre,aH)
+        P_seuil_h.drawOn(canv, alignement_col_gauche+4,aH)
         
 
     canv.save()
@@ -631,20 +643,21 @@ if __name__ == "__main__":
     ex_conta = "2018-03-27 foetus 90-10_PP16.txt"
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
-    ex_n_conc_mere_erreur = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
+    ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
+    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_mere)
+    
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="Projet"
-    nom_fichier_mere="Mere"
-    nom_fichier_foetus="Foetus"
-    nom_fichier_pere="Pere"
-    nom_fichier="fichier"
+    nom_projet="XXXXXXXXXX"
+    nom_fichier_mere="mere"
+    nom_fichier_foetus="foetus"
+    nom_fichier_pere="pere"
+    nom_fichier="XXXXX1999112"
     date="01/01/1999"
     Sexe="I"
     path=""
-    nom_utilisateur = "nom prenom"
-    choix_utilisateur=8
+    nom_utilisateur = "Marie-Joseph Mirna"
+    choix_utilisateur=3
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 4
