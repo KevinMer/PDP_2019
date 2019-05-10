@@ -151,7 +151,7 @@ class Echantillon:
                 for alleles in range(len(foetus)):
                     for allele_foetus in range(3):
                         if foetus[alleles].allele[allele_foetus] in pere[alleles].allele:
-                            if foetus[alleles].allele[allele_foetus] != 0.0:    
+                            if foetus[alleles].allele[allele_foetus] != 0.0:
                                 pere[alleles].concordance_pere_foetus = "OUI"
                                 concordance_pf = concordance_pf + 1
                                 break
