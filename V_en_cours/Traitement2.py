@@ -28,7 +28,7 @@ class Echantillon:
     """
 
     def __init__(self, date, name, liste_lignes, sexe=None, concordance_mere_foet=None, concordance_pere_foet=None,
-                 seuil_nbre_marqueurs=2, seuil_taux_conta=5, seuil_hauteur=1 / 3, conclusion=None):
+                 seuil_nbre_marqueurs=2, seuil_hauteur=1 / 3, conclusion=None):
         """ The constructor for Echantillon class
 
         Parameters:
@@ -37,7 +37,6 @@ class Echantillon:
             sexe (str) : fetus sex
             concordance (str) : DNAs match between mother and fetus
             seuil_nbre_marqueurs (int) : marker number which have to be contaminated to declare sample as contaminated
-            seuil_taux_conta (int) : one marker is contaminated if his contamination percentage is higher than the value
             seuil_hauteur (int) : spike height to check
             conclusion (int) : contaminated sample (1) or not (0)
 
@@ -46,7 +45,6 @@ class Echantillon:
         self.name = name
         self.liste_lignes = liste_lignes
         self.seuil_nbre_marqueurs = seuil_nbre_marqueurs
-        self.seuil_taux_conta = seuil_taux_conta
         self.conclusion = conclusion
         self.seuil_hauteur = seuil_hauteur
         self.sexe = sexe
@@ -189,12 +187,12 @@ class Echantillon:
                     logger.info("Mère homozygote : " + str(mere[nbre_lignes].homozygote))
                     logger.info("Vérification si mère et foetus possèdent les mêmes allèles")
                     foetus[nbre_lignes].allele_semblable(mere[nbre_lignes])
-                    logger.info("Code informatif vérification allèles semblables à la mère : " + str(foetus[nbre_lignes].informatif))
+                    logger.info("Code informatif vérification mêmes allèles que la mère : " + str(foetus[nbre_lignes].informatif))
                     logger.info("Initialisation du taux de contamination pour calcul à venir")
                     logger.info("Taux initialisé")
                     foetus[nbre_lignes].taux = 0.0
                     logger.info(
-                        "Si code informatif vérification allèles semblables à la mère différent de 2, vérification écho")
+                        "Si code informatif vérification mêmes allèles que la mère différent de 2, vérification écho")
                     logger.info("Si écho, affection de la valeur 3 pour code informatif")
                     if foetus[nbre_lignes].informatif != 2:
                         logger.info("Vérification si écho")
@@ -241,8 +239,7 @@ class Echantillon:
                             foetus[nbre_lignes].contamination = 0
                     logger.info("Marqueur suivant\n")
                 logger.info("Détermination contamination pour échantillon")
-                logger.info("Prise en compte du marqueur si contamination >" + str(self.seuil_taux_conta) + "%")
-                logger.info("Echantillon contaminé si plus de " + str(self.seuil_taux_conta) + "marqueurs contaminés")
+                logger.info("Echantillon contaminé si plus de " + str(self.seuil_nbre_marqueurs) + "marqueurs contaminés")
                 self.conclusion_echantillon(foetus)
                 logger.info("Détermination contamination pour échantillon terminée")
                 logger.info("Fin de traitement")
@@ -428,7 +425,7 @@ class Echantillon:
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
-                        resultat["Détails M/F"].append("Allèles semblables à la mère")
+                        resultat["Détails M/F"].append("Mêmes allèles que la mère")
                     else:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
@@ -477,7 +474,7 @@ class Echantillon:
                             resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
-                        resultat["Détails M/F"].append("Allèles semblables à la mère")
+                        resultat["Détails M/F"].append("Mêmes allèles que la mère")
                     else:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Echo")
@@ -510,7 +507,7 @@ class Echantillon:
         """
         compteur = 0
         for lignes in range(1, len(liste_foetus)):
-            if liste_foetus[lignes].contamination != 0 and liste_foetus[lignes].taux > self.seuil_taux_conta:
+            if liste_foetus[lignes].contamination != 0:
                 compteur = compteur + 1
         if compteur > self.seuil_nbre_marqueurs:
             self.conclusion = 1
