@@ -449,7 +449,7 @@ class Echantillon:
                     if liste_P[nbres].concordance_pere_foetus == "NON":
                         resultat["Détails P/F"].append(
                             "P: " + str(liste_P[nbres].normalisation(liste_P[nbres].allele)) + " F: " + str(
-                                liste_P[nbres].normalisation(liste_P[nbres].allele)))
+                                liste_F[nbres].normalisation(liste_F[nbres].allele)))
                     else:
                         resultat["Détails P/F"].append("")
                 for nbres in range(1, len(liste_F)):
