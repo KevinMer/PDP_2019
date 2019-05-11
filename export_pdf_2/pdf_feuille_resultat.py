@@ -82,7 +82,7 @@ def colonne(mot):
     style = styles["BodyText"]
     return Paragraph("<para align=center spaceb=3><font size=12><font color=white><b>"+mot+"</b></font></font></para>",style)
 
-def diagnos(mot):
+def style_resultat_tableau(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
     if mot==None:
@@ -100,7 +100,7 @@ def diagnos(mot):
         else:
             return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
 
-def posinega(mot):
+def style_resultat_conclusion(mot):
     if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
         return "<font color=green><font size=13>"+mot+"</font></font>"
     if mot != "ABS":
@@ -303,65 +303,66 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(2,len(data)):
                 if dataframe["Conclusion"][marqueurs-2] == "Non informatif":
-                     data[marqueurs][1] = diagnos(dataframe["Conclusion"][marqueurs-2])
+                     data[marqueurs][1] = style_resultat_tableau(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][2] = " / "
                      data[marqueurs][3] = " / "
                 else:
-                     data[marqueurs][1] = diagnos("Informatif")
-                     data[marqueurs][2] = diagnos(dataframe["Conclusion"][marqueurs-2])
+                     data[marqueurs][1] = style_resultat_tableau("Informatif")
+                     data[marqueurs][2] = style_resultat_tableau(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][3] = " / "
                      ligne_informative.append(marqueurs)
-                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables à la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
-                    data[marqueurs][3] = diagnos(dataframe["Détails M/F"][marqueurs-2])
+                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Mêmes allèles que la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
+                    data[marqueurs][3] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
                     data[marqueurs][4] = " / "
                 else:
                     data[marqueurs][3] = " / "
-                    data[marqueurs][4] = diagnos(dataframe["Détails M/F"][marqueurs-2])
+                    data[marqueurs][4] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
                 if data[marqueurs][3] == "":
                     data[marqueurs][3] =" / "
         else:
             for marqueurs in range(2,len(data)):
                 if dataframe["Conclusion"][marqueurs-2] == "Non informatif":
-                     data[marqueurs][1] = diagnos(dataframe["Conclusion"][marqueurs-2])
+                     data[marqueurs][1] = style_resultat_tableau(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][2] = " / "
                      data[marqueurs][3] = " / "
                 else:
                      ligne_informative.append(marqueurs)
-                     data[marqueurs][1] = diagnos("Informatif")
-                     data[marqueurs][2] = diagnos(dataframe["Conclusion"][marqueurs-2])
+                     data[marqueurs][1] = style_resultat_tableau("Informatif")
+                     data[marqueurs][2] = style_resultat_tableau(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][3] = " / "
-                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Allèles semblables à la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
-                     data[marqueurs][3] = diagnos(dataframe["Détails M/F"][marqueurs-2])
+                if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Mêmes allèles que la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
+                     data[marqueurs][3] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
                      data[marqueurs][4] = " / "
                 else:
                      data[marqueurs][3] = " / "
-                     data[marqueurs][4] = diagnos(dataframe["Détails M/F"][marqueurs-2])
+                     data[marqueurs][4] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
                 if data[marqueurs][3] == "":
                      data[marqueurs][3] =" / "
                      
-                data[marqueurs][5] = diagnos(dataframe["Concordance Pere/Foetus"][marqueurs-2])
+                data[marqueurs][5] = style_resultat_tableau(dataframe["Concordance Pere/Foetus"][marqueurs-2])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-2]=="NON":
                     data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-2])
+                    print(dataframe["Détails P/F"][marqueurs-2])
                 else:
                     data[marqueurs][6] = " / "
     else:
         ligne_informative=range(2,len(data),2)
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(1,len(data)):
-                data[marqueurs][1] = diagnos(dataframe["Concordance Mere/Foetus"][marqueurs-1])
+                data[marqueurs][1] = style_resultat_tableau(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
                     data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
                 else:
                     data[marqueurs][2] = " / "
         else:
             for marqueurs in range(1,len(data)):
-                data[marqueurs][1] = diagnos(dataframe["Concordance Mere/Foetus"][marqueurs-1])
+                data[marqueurs][1] = style_resultat_tableau(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
                     data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
                 else:
                     data[marqueurs][2] = " / "
                     
-                data[marqueurs][3] = diagnos(dataframe["Concordance Pere/Foetus"][marqueurs-1])
+                data[marqueurs][3] = style_resultat_tableau(dataframe["Concordance Pere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-1]=="NON":
                     data[marqueurs][4] = profil_allelique(dataframe["Détails P/F"][marqueurs-1])
                 else:
@@ -457,7 +458,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     if Concordance_mf=="NON" or Concordance_pf=="NON":
         alignement_col_gauche = 10
         alignement_col_centre = 155
-        alignement_col_droite = 340
+        alignement_col_droite = 380
         align_mere = 300
         align_pere = 460
     else:
@@ -526,8 +527,8 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         Par.drawOn(canv,alignement_col_droite, aH-h)
     
 
-    P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+posinega(Concordance_pf)+"</font>",style)
-    P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+posinega(Concordance_mf)+"</font>",style)
+    P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+style_resultat_conclusion(Concordance_pf)+"</font>",style)
+    P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+style_resultat_conclusion(Concordance_mf)+"</font>",style)
     if Concordance_mf != "NON":
         P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
         P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
@@ -537,7 +538,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
         P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne des pourcentages de contamination : </font><font color=red>"+str(moy_conta)+"</font></b></font>",style)
         
-    P_conta_echantillon = Paragraph("<font size=12><b>"+posinega(Contamination)+"</b></font>",style)
+    P_conta_echantillon = Paragraph("<font size=12><b>"+style_resultat_conclusion(Contamination)+"</b></font>",style)
     P_seuil_m = Paragraph("<font size=12><font color=darkblue>N : </font>"+str(seuil_marqueur)+"</font>",style)
     P_seuil_h = Paragraph("<font size=12><font color=darkblue>H : </font>"+str(seuil_pic)+"</font>",style)
     
@@ -588,7 +589,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         P_seuil_m.drawOn(canv, alignement_col_gauche+4,aH)
         
         aH = aH - h
-        w, h =P_seuil_h.wrap(aW,aH)
+        w, h = P_seuil_h.wrap(aW,aH)
         P_seuil_h.drawOn(canv, alignement_col_gauche+4,aH)
         
 
@@ -644,20 +645,19 @@ if __name__ == "__main__":
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_mere)
+    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
     
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="XXXXXXXXXX"
+    nom_projet="ex_abs_concord_pere"
     nom_fichier_mere="mere"
     nom_fichier_foetus="foetus"
     nom_fichier_pere="pere"
-    nom_fichier="XXXXX1999112"
     date="01/01/1999"
     Sexe="I"
     path=""
-    nom_utilisateur = "Marie-Joseph Mirna"
-    choix_utilisateur=3
+    nom_utilisateur = "Nom prénom"
+    choix_utilisateur=0
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 4
