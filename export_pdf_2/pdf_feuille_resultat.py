@@ -64,9 +64,6 @@ def init_pdf(path,filename,Concordance_mf, Concordance_pf):
         canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=A4)
     else:
         canv = Canvas(os.path.join(path, filename+".pdf"), pagesize=landscape(A4))
-        
-    o=canv.getAvailableFonts()
-    print(o)
     return canv
 
 
@@ -115,13 +112,12 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
     Concordance_pf (string) : consistency between the DNA of the father and the foetus
         function:
     Create the formatted table for the header of the chu from their logo, Entite_d_Application, Emetteur and the version of the app. 
-    Create the formatted table for the title with th logo of the app
-    Create a matrix with a line for each marker, and the appropriate column dependending of the consistency of the DNA between the foetus and the mother, the father.
+    Create the formatted table for the title with the logo of the app
+    Create a matrix with a line for each marker, and the appropriate column dependending of the consistency of the DNA between the foetus and the mother/the father.
         output:
     CHU_HEADER (reportlab.platypus.tables.Table) : table containing the header of the CHU
     HEADER (reportlab.platypus.tables.Table) : table containing the logo of the app and title
-    data (matrix) : empty table containing a line for each marker and information 
-        about contamination or consistency depending on Concordanc_mf and Concordance_pf
+    data (matrix) : empty table containing a line for each marker and a column for the information about contaminations or consistency depending on Concordance_mf and Concordance_pf
     '''
 
     styles = getSampleStyleSheet()
@@ -342,7 +338,6 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                 data[marqueurs][5] = style_resultat_tableau(dataframe["Concordance Pere/Foetus"][marqueurs-2])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-2]=="NON":
                     data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-2])
-                    print(dataframe["Détails P/F"][marqueurs-2])
                 else:
                     data[marqueurs][6] = " / "
     else:
@@ -455,6 +450,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     P_no_foetus = Paragraph("<font size=12><font color=darkblue>N° du fœtus : </font>"+nb_foetus+"</font>",style)
     P_no_mere = Paragraph("<font size=12><font color=darkblue>N° de la mère : </font>"+nb_mere+"</font>",style)
     P_no_pere = Paragraph("<font size=12><font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
+    
     if Concordance_mf=="NON" or Concordance_pf=="NON":
         alignement_col_gauche = 10
         alignement_col_centre = 155
@@ -493,7 +489,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     P_no_pere.drawOn(canv,align_pere,aH-h)
     
     
-    if Concordance_mf=="OUI":#tableau_principalableau principal
+    if Concordance_mf=="OUI":#tableau_principal
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             aH = aH - (h+10)
             w, h = tableau_principal.wrap(aW, aH)
