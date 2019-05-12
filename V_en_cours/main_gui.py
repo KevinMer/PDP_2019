@@ -14,12 +14,10 @@ import logging
 import copy
 
 
-
 from datetime import datetime
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.checkbox import CheckBox
 from kivy.uix.label import Label
 from kivy.lang  import Builder
 from kivy.uix.filechooser import FileChooserIconView
@@ -55,8 +53,11 @@ logging.basicConfig(filename='log_'+heure_vrai+'.txt', filemode='w', format='%(n
                     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 class ScreenManagement(ScreenManager):
-    pass 
+    pass
+
+
 class EcranPremier(Screen):
     def show_load(self,nom_utilisateur):
         try:
@@ -67,6 +68,8 @@ class EcranPremier(Screen):
             return
 
         logger.info("Changment d'écran réussi")
+
+
 class EcranFct(Screen):
     pass
 
@@ -90,18 +93,21 @@ class TableOnglets(TabbedPanel):
             start_anim(anim, self.current_tab.content, False)
         else:
             _on_complete()
-    
+
+
 class CloseableHeader(TabbedPanelHeader):
     panel=ObjectProperty(None)
     text1=ObjectProperty(None)
-    SuprOnglet=ObjectProperty(None)
-    
+    supr_onglets=ObjectProperty(None)
+
+
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
-    Retourner=ObjectProperty(None)
+    retour=ObjectProperty(None)
     ecran=ObjectProperty(None)
     path=ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(LoadDialog, self).__init__(**kwargs)
         self.ids.drives_list.adapter.bind(on_selection_change=self.drive_selection_changed)
@@ -120,6 +126,8 @@ class LoadDialog(FloatLayout):
     def drive_selection_changed(self, *args):
         selected_item = args[0].selection[0].text
         self.ids.file_chooser.path = selected_item
+
+
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
     nom_pdf=ObjectProperty(None)
@@ -145,6 +153,7 @@ class SaveDialog(FloatLayout):
     def drive_selection_changed(self, *args):
         selected_item = args[0].selection[0].text
         self.ids.file_chooser.path = selected_item
+
 
 class ParametreDialog(FloatLayout):
     save_parametres=ObjectProperty(None)
@@ -371,28 +380,32 @@ class EcranFctMethod(GridLayout):
         self._popup.dismiss()
 
     def show_load(self):
+        """  Display a pop up windows with the FileChooser for loading purpose
+                        """
+
         self.hauteur="1/3"
         self.nb=2
         #ppath=os.path.join(os.environ["HOMEPATH"], "Desktop")
         ppath=self.instance_path
-        contenu=LoadDialog(load=self.load,cancel=self.dismiss_popup,Retourner=self.Retourner,ecran=self,path=ppath)
+        contenu=LoadDialog(load=self.load,cancel=self.dismiss_popup,ecran=self,path=ppath)
         self._popup = Popup(title='Ouvrir un fichier', content=contenu,  size_hint=(0.9, 0.9))
         self._popup.open()
         if(self.retour):
             return True
         
-    def Retourner(self,retour):
+    def retour_conclusion(self,retour):
         self.retour=retour
 
         
     def load(self, path, filename):
-
+        """ Call the functions and methods from Traitement2 with default parameters, path and filename
+                chose by user. Gather result from them and put it in attributes of an instance of ResAnalyse
+                """
         try:
             #lecture du fichier et traitement
             M, F, P, Echantillon_F = Traitement2.lecture_fichier(os.path.join(path, filename[0]))
             logger.info("fonction lecture fichier réussi")
             Echantillon_F.set_seuil_hauteur(eval(self.hauteur))
-            Echantillon_F.set_seuil_taux_conta(float(self.conta))
             Echantillon_F.set_seuil_nbre_marqueurs(float(self.nb))
             logger.info("Attribution des taux réussi")
             resultats, conclusion = Echantillon_F.analyse_donnees(M, F,P)
@@ -400,12 +413,11 @@ class EcranFctMethod(GridLayout):
             #récupération et attribution de données
             self.titre =  Echantillon_F.get_name()
             self.instance_path=path
-            nv_onglets = CloseableHeader(text1=self.titre +"  ",panel=self.ids.les_onglets,SuprOnglet=self.SuprOnglet)
+            nv_onglets = CloseableHeader(text1=self.titre +"  ",panel=self.ids.les_onglets,supr_onglets=self.supr_onglets)
             contenu_res = ResAnalyse(
                 titre=self.titre + "\n" + "\n",
                 NvGroupe=len(self.ids.les_onglets.tab_list),
                 show_save=self.show_save,
-                SaveLog=self.SaveLog,
                 down_button=self.down_button)
             self.InfoParametre["Sexe"]=Echantillon_F.get_sexe()
             self.InfoParametre["df_conclusion"]=resultats
@@ -449,7 +461,7 @@ class EcranFctMethod(GridLayout):
 
         return True
 
-    def ChangeOnglet(self):
+    def change_onglets(self):
         if(len(self.ids.les_onglets.get_tab_list())!=0):
             self.ids.les_onglets.switch_to(self.ids.les_onglets.get_tab_list()[0])
         else:
@@ -457,13 +469,15 @@ class EcranFctMethod(GridLayout):
             self.retour=False
 
 
-    def SuprOnglet(self,id):
+    def supr_onglets(self,id):
         
         self.ids.les_onglets.remove_widget(id)
-        self.ChangeOnglet()
+        self.change_onglets()
 
     def show_save(self):
-        #content = SaveDialog(save=self.save, cancel=self.dismiss_popup,path=os.path.join(os.environ["HOMEPATH"], "Desktop"),nom_pdf=self.ids.les_onglets.current_tab.content.InfoParametre["nom_pdf"])
+        """  Display a pop up windows with the FileChooser for saving purpose
+                                """
+
         content = SaveDialog(save=self.save, cancel=self.dismiss_popup,path=self.instance_path,nom_pdf=self.ids.les_onglets.current_tab.content.InfoParametre["nom_pdf"])
         
         self._popup = Popup(title="Sauvegarder un  fichier", content=content,
@@ -471,6 +485,8 @@ class EcranFctMethod(GridLayout):
         self._popup.open()
 
     def save(self, path, filename):
+        """  Call function for creating pdf and test if the autmatic conclusion have been changed
+                                        """
         conclu=0
         self.instance_path=path
         if (self.choix == 0 and self.ids.les_onglets.current_tab.content.InfoParametre["code_conclu"]==0):
@@ -508,7 +524,7 @@ class EcranFctMethod(GridLayout):
             logger.error("Echec lancement créaton pdf", exc_info=True)
             return
         logger.info("Création pdf réussi")
-        if sys.platform == 'linux':
+        if platform == 'linux':
             os.system("xdg-open " +os.path.join(path+filename)+".pdf")
         else:
             os.system('start ' +path+"\\"+filename+".pdf")
@@ -517,6 +533,8 @@ class EcranFctMethod(GridLayout):
         self.choix=num
     
     def ouverture_parametres(self):
+        """  Display a pop up windows with the parameters
+                                        """
         try:
             content = ParametreDialog( hauteur=str(self.ids.les_onglets.current_tab.content.InfoParametre["hauteur"]),
                                         nb=str(self.ids.les_onglets.current_tab.content.InfoParametre["nb"]),
@@ -524,54 +542,53 @@ class EcranFctMethod(GridLayout):
                                         emetteur=self.ids.les_onglets.current_tab.content.InfoParametre["Emetteur"],
                                         entite=self.ids.les_onglets.current_tab.content.InfoParametre["Entite_appli"],
                                         cancel=self.dismiss_popup)
-            self._popup = Popup(title="Modifier des parametres", content=content,
+            self._popup = Popup(title="Modifier des parametres",
+                                content=content,
                                 size_hint=(0.9, 0.9))
             self._popup.open()
         except Exception as e:
             logger.error("Ouverture paramétre impossible", exc_info=True)
+            return
         logger.info("Ouverture paramètre réussi")
     
-
     def save_parametres(self,p1,p3,p4,p5):
+        """  The new parameters of the analysis are put in temp attributes(EcranFctmethod's attributes)
+                and a new analysis is started(load method)
+                                        """
         try:
             self.nb=p1
-            
             self.hauteur=p3
             self.emetteur=p4
             self.entite=p5
-
             self.load( self.ids.les_onglets.current_tab.content.InfoParametre["path"], self.ids.les_onglets.current_tab.content.InfoParametre["filename"])
-            #self.ids.les_onglets.current_tab.content.nb= p1
-            
-            #self.ids.les_onglets.current_tab.content.hauteur = p3
-            """ ResAnalyse.nb=p1
-            
-            ResAnalyse.hauteur=p3 """
-            
             self.dismiss_popup()
         except Exception as e:
             logger.error("Changement paramètres échoué nb(attendu)=entier,nb(indiqué)= "+str(p1)+", hauteur(attendu)=entier ou fraction,hauteur(indiqué)=" +str(p3),exc_info=True)
             return
         logger.info("Changement paramètres réussi")
-    def SaveLog(self):
-        pass
 
     def quitter(self):
-       
        sys.exit(0)
 
 
 class MyApp(App):
+
+    """It's the main Class application, kivy detect kv file automatically with a name in lowercase
+        which is before the word App in the name of this class
+        , example: MyApp will detect a the kv file my.kv or TestApp
+        will detect the kv file test.kv
+                                """
+
     Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-    title = 'DPN 3000'
+    title = 'LACFoM'
 
     def build(self):
         self.icon = 'logo.png'
 
 
+"""Factory register is for communicating name's Classes to the kv file
+                                """
 
-
-    
 Factory.register('ResAnalyse', cls=ResAnalyse)
 Factory.register('EcranPremier', cls=EcranPremier)
 Factory.register('EcranFct', cls=EcranFct)
@@ -584,9 +601,6 @@ Factory.register('InfosConclusion', cls=InfosConclusion)
 Factory.register('ConcordanceEtSexe', cls=ConcordanceEtSexe)
 Factory.register('CloseableHeader', cls=CloseableHeader)
 if __name__ == '__main__':
-
-
-
     version=1.0
     app= MyApp()
     app.run()
