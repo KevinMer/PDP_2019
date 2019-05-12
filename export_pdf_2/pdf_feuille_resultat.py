@@ -641,11 +641,11 @@ if __name__ == "__main__":
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
+    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_mere)
     
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_abs_concord_pere"
+    nom_projet="ex_abs_concord_mere_pere_abs"
     nom_fichier_mere="mere"
     nom_fichier_foetus="foetus"
     nom_fichier_pere="pere"
@@ -658,7 +658,7 @@ if __name__ == "__main__":
     seuil_pic = 42
     seuil_marqueur = 4
     seuil_pourcentage = 0.42
-    presence_pere = "OUI"
+    presence_pere = "ABS"
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
