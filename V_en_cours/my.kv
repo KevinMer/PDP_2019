@@ -21,7 +21,7 @@ ScreenManagement:
             Image:
                 source:"logo.png"
             Label:
-                text:"DPN 3000"
+                text:"LACFoM"
                 font_size: "70sp"
                 color: [256, 256, 256, 1]
         BoxLayout:
@@ -464,7 +464,7 @@ ScreenManagement:
                 background_normal: ''
                 background_color: (75/255, 127/255, 209/255,1)
                 color: [0.949, 0.945, 0.945, 1]
-                text: "R\u00e9nitialiser"
+                text: "R\u00e9initialiser"
                 on_release: 
                     text_input1_para.text="2"
                     text_input3_para.text= "1\u002F3"
@@ -776,7 +776,7 @@ ScreenManagement:
             Image:
                 source: 'croix.png'
                 on_touch_down:
-                    if self.collide_point(*args[1].pos) :root.SuprOnglet(root)
+                    if self.collide_point(*args[1].pos) :root.supr_onglets(root)
                 
 
                         
