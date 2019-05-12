@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import logging
-import sys
 from datetime import datetime
 from time import strftime
 import re
@@ -22,7 +21,6 @@ class Echantillon:
         sexe (str) : fetus sex
         concordance (str) : DNAs match between mother and fetus
         seuil_nbre_marqueurs (int) : marker number which have to be contaminated to declare sample as contaminated
-        seuil_taux_conta (int) : one marker is contaminated if his contamination percentage is higher than the value
         seuil_hauteur (int) : spike height to check
         conclusion (int) : contaminated sample (1) or not (0)
     """
@@ -62,11 +60,6 @@ class Echantillon:
         """
         return self.seuil_nbre_marqueurs
 
-    def get_seuil_taux_conta(self):
-        """ Return seuil_taux_con
-        """
-        return self.seuil_taux_conta
-
     def get_seuil_hauteur(self):
         """ Return seuil_hauteur
         """
@@ -97,11 +90,6 @@ class Echantillon:
         """
         self.seuil_nbre_marqueurs = nb
 
-    def set_seuil_taux_conta(self, taux):
-        """ Set seuil_taux_conta
-        """
-        self.seuil_taux_conta = taux
-
     def set_seuil_hauteur(self, hauteur):
         """ Set seuil_hauteur
         """
@@ -129,11 +117,13 @@ class Echantillon:
 
     def analyse_donnees(self, mere, foetus, pere):
         """ Analyze data
-            For one couple lignes mother/fetus, informative character and conclusion is set
+            Concordance between mere/foetus and pere/foetus is done.
+            For one couple lignes mere/foetus, informative character and conclusion is set.
 
             Parameters :
                 mere (list) : lines extracted from txt file corresponding to mother
                 foetus (list) : lines extracted from txt file corresponding to fetus
+                pere (list) : lines extracted from txt file corresponding to father
 
             Return two dataframes :
                 - first one containing information about Name, Conclusion and Details for each marker
@@ -271,6 +261,8 @@ class Echantillon:
             Parameters :
                 - concordance (int) : DNAs matching markers between mother and fetus
                 - list_F (list) : contains fetus lines from txt file
+                - liste_M (list): contains mother lines from txt file
+                - liste_P (list) : contains father lines from txt file
 
             Return two dataframes :
                 - first one containing information about Name, Conclusion and Details for each marker
@@ -496,10 +488,9 @@ class Echantillon:
             logger.error("Stockage des données impossible", exc_info=True)
 
     def conclusion_echantillon(self, liste_foetus):
-        """ This concludes about sample contamination or not.
+        """ This concludes about sample contamination.
 
-            Compare number of contaminated markers (more or equal to 5 %) to seuil_taux_conta.
-            If the number is higher than seuil_taux_conta -> sample is contaminated
+            If the number of contaminated marker is higher than seuil_nbre_marqueurs -> sample is contaminated
             Else -> sample is not contaminated
 
             Parameters :
@@ -677,7 +668,8 @@ class Foetus(Patient):
         self.taux = round(taux_contamination, 2)
 
     def contamination_homozygote(self, echantillon):
-        """ Check if the marker is homozygous contaminated
+        """ Check if the marker is homozygous contaminated.
+            Contamination is computed if is.
 
             Parameters :
             - echantillon : Echantillon object
@@ -705,7 +697,7 @@ class Foetus(Patient):
 class Pere(Patient):
     """ Exclusive informations about the father. Pere class inherits from Patient.
 
-        Do not implemented because mother and fetus are enough to conclude.
+        Did not implement because mother and fetus are enough to conclude.
     """
 
     def __init__(self, marqueur, allele, hauteur, informatif, num_pere, concordance_pere_foetus):
