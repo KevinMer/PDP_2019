@@ -498,12 +498,13 @@ class Echantillon:
         """
         compteur = 0
         for lignes in range(1, len(liste_foetus)):
-            if liste_foetus[lignes].contamination != 0:
+            if liste_foetus[lignes].informatif == 1 and liste_foetus[lignes].contamination != 0:
                 compteur = compteur + 1
         if compteur > self.seuil_nbre_marqueurs:
             self.conclusion = 1
         else:
             self.conclusion = 0
+        
 
 
 class Patient:
@@ -803,4 +804,3 @@ def homogeneite_type(list_allele, list_hauteur):
 if __name__ == "__main__":
     M, F, P, Echantillon_F = lecture_fichier('181985_xfra_ja_200618_PP16.txt')
     resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
-    print(resultats)
