@@ -228,6 +228,7 @@ ScreenManagement:
                 id: file_chooser
                 path:root.path
                 filters:['*.txt']
+                dirselect: True
                 on_submit:
                     if(root.load(file_chooser.path, file_chooser.selection)):root.ecran.panel.manager.current="ecran_principale"
 
@@ -303,6 +304,7 @@ ScreenManagement:
             FileChooserIconView:
                 id: file_chooser
                 filters:['*.txt']
+                dirselect: True
                 path:root.path
         
             
@@ -571,7 +573,7 @@ ScreenManagement:
                         text:"Non Contamin\u00e9"
                         group:root.NvGroupe
                         font_size: 17
-                        on_state:root.down_button(0)
+                        on_state:root.InfoParametre["choix"]=0
                         on_state:root.CouleurBouton(0)
                         color: [256, 256, 256, 1]
                     ToggleButton:
@@ -584,7 +586,7 @@ ScreenManagement:
                         id:TButtonContamine
                         text: "Contamin\u00e9"
                         group:root.NvGroupe
-                        on_state:root.down_button(1)
+                        on_state:root.InfoParametre["choix"]=1
                         on_state:root.CouleurBouton(1)
         BoxLayout:
             spacing:70
