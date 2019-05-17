@@ -12,6 +12,7 @@ Regrouper les scripts (main_gui.py, pdf_feuille_resultat.py, Traitement2,logo.ic
 Puis commande bash dans le path du nouveau dossier:
 
 >python -m PyInstaller --name LACFoM --icon C:\Users\gauvr\Desktop\V_demo_6\logo.ico main_gui.py
+
 (remplacer chemin du logo)
 
 
@@ -43,6 +44,7 @@ Les modifications du fichier spec se basent sur la partie "Packaging a simple ap
                name='touchtracer')
 
 Dans cette partie coll, spécifier le chemin du dossier "data" à la ligne : coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
+
 Modifier le nom à la ligne name='touchtracer' par name='LACFom'
 
 3)Toujours dans le fichier spec, dans la partie "a = Analysis", à la ligne hiddenimports il faut écrire :
