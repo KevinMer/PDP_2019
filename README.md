@@ -9,7 +9,8 @@ La version exécutable qui sera obtenue ne sera fonctionnelle que sur le systèm
 --------------------------------------Création du fichier spec--------------------------------------------------------
 
 Regrouper les scripts (main_gui.py, pdf_feuille_resultat.py, Traitement2,logo.ico) situés dans le dossier V_en_cours dans un dossier. (Exemple ici V_demo_6)
-Puis commande bash dans le path du nouveau dossier:
+
+Commande bash dans ce nouveau dossier créé:
 
 >python -m PyInstaller --name LACFoM --icon C:\Users\gauvr\Desktop\V_demo_6\logo.ico main_gui.py
 
