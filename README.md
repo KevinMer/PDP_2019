@@ -35,13 +35,21 @@ Les modifications du fichier spec se basent sur la partie "Packaging a simple ap
 2)Ensuite, remplacer la partie coll par le copier/coller suivant :
 
   coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
+  
                a.binaries,
+               
                a.zipfiles,
+               
                a.datas,
+               
                *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+               
                strip=False,
+               
                upx=True,
+               
                name='touchtracer')
+               
 
 Dans cette partie coll, spécifier le chemin du dossier "data" à la ligne : coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
 
