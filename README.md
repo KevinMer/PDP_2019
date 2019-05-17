@@ -13,9 +13,9 @@ Puis commande bash dans le path du nouveau dossier:
 (remplacer chemin du logo)
 Un fichier spec est créé dans le dossier. 
 
-Les modiifcations du fichier spec se base sur la parti "packaging a simple app" de la  page suivante: https://kivy.org/doc/stable/guide/packaging-windows.html
-
 Faire un dossier "data" dans le dossier où il y à le fichier spec, le main_gui,pdf_feuille...qui cotiendra le my.kv dedans et les images: croix.png,logo.png,loco_CHU.png
+
+Les modifications du fichier spec se base sur la parti "packaging a simple app" 3. de la  page suivante: https://kivy.org/doc/stable/guide/packaging-windows.html
 
 spécifié dans le fichier spec le chemin du data à la ligne "coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),"
 
@@ -32,3 +32,4 @@ la version exe sera dans le dossier dist qui sera créé à la suite de la comma
 
 
 
+/
