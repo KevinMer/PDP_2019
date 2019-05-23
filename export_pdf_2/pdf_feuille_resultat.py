@@ -1,4 +1,25 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Version : 1.0 stable 05.24.2019 LACFoM
+
+# Authors : Kévin Merchadou, Mirna Marie-Joseph, Théo Gauvrit
+#
+# This software is distributed under GNU General Public License v3.0
+#
+# With  7. Additional Terms.
+#  "Additional permissions" are terms that supplement the terms of this
+# License by making exceptions from one or more of its conditions.
+# Additional permissions that are applicable to the entire Program shall
+# be treated as though they were included in this License, to the extent
+# that they are valid under applicable law.  If additional permissions
+# apply only to part of the Program, that part may be used separately
+# under those permissions, but the entire Program remains governed by
+# this License without regard to the additional permissions.
+#
+#  1.Prohibiting misrepresentation of the origin of that material, or
+#    requiring that modified versions of such material be marked in
+#    reasonable ways as different from the original version;
+# https://www.gnu.org/licenses/gpl-3.0.html
 
 import os
 from reportlab.lib import colors
@@ -93,7 +114,7 @@ def style_resultat_tableau(mot):
             mot=mot[20:]
             return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         if mot=="Informatif":
-            return Paragraph("<para align=center spaceb=3><font size=10><b>"+mot+"</b></font></para>",style)
+            return Paragraph("<para align=center spaceb=3><font size=11><b>"+mot+"</b></font></para>",style)
         else:
             return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
 
@@ -215,7 +236,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
         
     else: 
         if Concordance_pf=="OUI" or Concordance_pf=="ABS" :
-           data = [ [colonne("Marqueurs"),colonne("Concordances des ADN maternelles et fœtal"),colonne("Détails allèles mère et fœtus")],
+           data = [ [colonne("Marqueurs"),colonne("Concordances des ADN maternels et fœtaux"),colonne("Détails allèles mère et fœtus")],
                      [colonne_marqueur("CSF1PO"),"",""],
                      [colonne_marqueur("D13S317"),"",""],
                      [colonne_marqueur("D16S539"),"",""],
@@ -232,7 +253,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                      [colonne_marqueur("TPOX"),"",""],
                      [colonne_marqueur("vWA"),"",""]]
         else:
-             data = [ [colonne("Marqueurs"),colonne("Concordance des ADN maternelles et fœtals"),colonne("Détails allèles mère et fœtus"),colonne("Concordance des ADN paternelles et fœtals"),colonne("Détails allèles père et fœtus")],
+             data = [ [colonne("Marqueurs"),colonne("Concordance des ADN maternels et fœtaux"),colonne("Détails allèles mère et fœtus"),colonne("Concordance des ADN paternels et fœtaux"),colonne("Détails allèles père et fœtus")],
                      [colonne_marqueur("CSF1PO"),"","","",""],
                      [colonne_marqueur("D13S317"),"","","",""],
                      [colonne_marqueur("D16S539"),"","","",""],
@@ -254,7 +275,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
 
 '''Affichage des allèles lors d'absencde de concordance'''
 
-def profil_allelique(string):
+def profil_allelique(string,parent):
     '''input:
     string : contains the allelic profile of the parent and the foetus
        function : seperate into two variable the alleles of each individual
@@ -277,8 +298,11 @@ def profil_allelique(string):
                     alleles_p=alleles_p+string[j]
                 else:
                     alleles_f=alleles_f+string[j]
-    profil_all_p = Paragraph("<para align=center spaceb=3><font size=10><font color=grey>"+alleles_p+"</font></font></para>",style)
-    profil_all_f = Paragraph("<para align=center spaceb=3><font size=10>"+alleles_f+"</font></para>",style)
+    if parent == "mere":
+        profil_all_p = Paragraph("<para align=center spaceb=3><font size=10><font color=grey>M:"+alleles_p+"</font></font></para>",style)
+    if parent == "pere":
+        profil_all_p = Paragraph("<para align=center spaceb=3><font size=10><font color=grey>P:"+alleles_p+"</font></font></para>",style)
+    profil_all_f = Paragraph("<para align=center spaceb=3><font size=10>F:"+alleles_f+"</font></para>",style)
     return [profil_all_p,profil_all_f]
   
 '''Remplissage du tableau principal avec Analyse'''
@@ -337,29 +361,31 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                      
                 data[marqueurs][5] = style_resultat_tableau(dataframe["Concordance Pere/Foetus"][marqueurs-2])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-2]=="NON":
-                    data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-2])
+                    data[marqueurs][6] = profil_allelique(dataframe["Détails P/F"][marqueurs-2],"pere")
                 else:
                     data[marqueurs][6] = " / "
     else:
-        ligne_informative=range(2,len(data),2)
         if Concordance_pf=="OUI" or Concordance_pf=="ABS":
             for marqueurs in range(1,len(data)):
                 data[marqueurs][1] = style_resultat_tableau(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
+                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1],"mere")
+                    ligne_informative.append(marqueurs)
                 else:
                     data[marqueurs][2] = " / "
         else:
             for marqueurs in range(1,len(data)):
                 data[marqueurs][1] = style_resultat_tableau(dataframe["Concordance Mere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Mere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1])
+                    data[marqueurs][2] = profil_allelique(dataframe["Détails M/F"][marqueurs-1],"mere")
+                    ligne_informative.append(marqueurs)
                 else:
                     data[marqueurs][2] = " / "
                     
                 data[marqueurs][3] = style_resultat_tableau(dataframe["Concordance Pere/Foetus"][marqueurs-1])
                 if dataframe["Concordance Pere/Foetus"][marqueurs-1]=="NON":
-                    data[marqueurs][4] = profil_allelique(dataframe["Détails P/F"][marqueurs-1])
+                    data[marqueurs][4] = profil_allelique(dataframe["Détails P/F"][marqueurs-1],"pere")
+                    ligne_informative.append(marqueurs)
                 else:
                     data[marqueurs][4] = " / "
     return ligne_informative
@@ -421,6 +447,22 @@ def style_result(data,Concordance_mf, Concordance_pf,l_info):
 
 '''Placement table et paragraphes dans PDF'''
 
+def adaptation_font_size(mot,Concordance_mf,Concordance_pf):
+    if Concordance_mf=="NON" or Concordance_pf=="NON":
+        print(len(mot),'   L431')
+        if len(mot)<=24:
+            font=12
+        if len(mot)>24 and len(mot)<=33:
+            font = 10.4
+        else:
+            font=8.9
+        return font
+    else:
+        if len(mot)<=24:
+            font=12
+        else:
+            font=11.5
+        return font
 
 def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
 
@@ -430,33 +472,29 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         aW = aW-20
         aH = aH+240
     
-    w, h = CHU_HEADER.wrap(aW, aH)
+    CHU_HEADER.wrap(aW, aH)
     CHU_HEADER.drawOn(canv, aW-750, aH)
     
     aH = aH-50
     
-    w, h = HEADER.wrap(aW, aH)
-
-
+    HEADER.wrap(aW, aH)
     HEADER.drawOn(canv, aW-750, aH)
     
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
+
+    font_size=adaptation_font_size(nb_foetus+nb_mere+nb_pere,Concordance_mf,Concordance_pf)
     
     P_date = Paragraph("<font size=12><font color=darkblue>Date du run : </font>"+date+"</font>",style)
     P_nom = Paragraph("<font size=12><font color=darkblue>Nom du projet : </font>"+nom+"</font>",style)
     P_utilisateur = Paragraph("<font size=12><font color=darkblue>Utilisateur : </font>"+nom_utilisateur+"</font>",style)
-    P_sexe = Paragraph("<font size=12><font color=darkblue>Sexe du foetus : </font>"+Sexe+"</font>",style)
-    P_no_foetus = Paragraph("<font size=12><font color=darkblue>N° du fœtus : </font>"+nb_foetus+"</font>",style)
-    P_no_mere = Paragraph("<font size=12><font color=darkblue>N° de la mère : </font>"+nb_mere+"</font>",style)
-    P_no_pere = Paragraph("<font size=12><font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
+    P_sfmp = Paragraph("<font size="+str(font_size)+"><font color=darkblue>Sexe du fœtus : </font>"+Sexe+" &nbsp; <font color=darkblue>N° du fœtus : </font>"+nb_foetus+" &nbsp; <font color=darkblue>N° de la mère : </font>"+nb_mere+" &nbsp; <font color=darkblue>N° du père : </font>"+nb_pere+"</font>",style)
+
     
     if Concordance_mf=="NON" or Concordance_pf=="NON":
         alignement_col_gauche = 10
         alignement_col_centre = 155
         alignement_col_droite = 380
-        align_mere = 300
-        align_pere = 460
     else:
         alignement_col_gauche = 60
         alignement_col_centre = 220
@@ -469,24 +507,15 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     P_date.drawOn(canv, alignement_col_gauche,aH-h)
     
     w, h = P_nom.wrap(aW,aH)
-    P_nom.drawOn(canv, alignement_col_centre,aH-h)
+    P_nom.drawOn(canv,alignement_col_centre,aH-h)
 
     w, h =P_utilisateur.wrap(aW,aH)
     P_utilisateur.drawOn(canv,alignement_col_droite,aH-h)
     
-    aH = aH - h
-    
-    w, h = P_no_foetus.wrap(aW,aH)
-    P_no_foetus.drawOn(canv, alignement_col_centre,aH-h)
-    
-    w, h = P_sexe.wrap(aW,aH)
-    P_sexe.drawOn(canv, alignement_col_gauche,aH-h)
-    
-    w, h = P_no_mere.wrap(aW,aH)
-    P_no_mere.drawOn(canv,align_mere,aH-h)
-    
-    w, h = P_no_pere.wrap(aW,aH)
-    P_no_pere.drawOn(canv,align_pere,aH-h)
+    aH = aH - 12
+
+    P_sfmp.wrap(aW,aH)
+    P_sfmp.drawOn(canv, alignement_col_gauche,aH-h)
     
     
     if Concordance_mf=="OUI":#tableau_principal
@@ -495,7 +524,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
             w, h = tableau_principal.wrap(aW, aH)
             tableau_principal.drawOn(canv, 30, aH-h)
         else:
-            aH = aH - (h+10)
+            aH = aH - (h+2)
             w, h = tableau_principal.wrap(aW, aH)
             tableau_principal.drawOn(canv,5, aH-h)
     else:
@@ -508,19 +537,18 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
             w, h = tableau_principal.wrap(aW, aH)
             tableau_principal.drawOn(canv, 10, aH-h)
 
-
+    Par = Paragraph("<font size=7.5><font color=darkblue><u>Paramètres: </u></font><font color=darkblue>Nombre minimum de marqueurs contaminés: </font>"+str(seuil_marqueur)+"; <font color=darkblue>Hauteur de pic discriminant un allèle contaminé d’un allèle normal: </font>"+str(seuil_pic)+"</font>",style)
     
-    Par = Paragraph("<font size=12><font color=darkblue><u>Paramètres</u></font></font>",style)
     alignement_col_gauche = 20
     alignement_col_centre = 220
-    alignement_col_droite = 580
+    
     
     aH = aH - h
     w, h = Par.wrap(aW, aH)
     if Concordance_mf == "OUI" and Concordance_pf == "NON":
-        Par.drawOn(canv,500, aH-h)
+        Par.drawOn(canv,155, aH-77)
     elif Concordance_mf=="OUI":
-        Par.drawOn(canv,alignement_col_droite, aH-h)
+        Par.drawOn(canv,400, aH-85)
     
 
     P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+style_resultat_conclusion(Concordance_pf)+"</font>",style)
@@ -535,8 +563,6 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         P_moy = Paragraph("<font size=12><b><font color=darkblue>Moyenne des pourcentages de contamination : </font><font color=red>"+str(moy_conta)+"</font></b></font>",style)
         
     P_conta_echantillon = Paragraph("<font size=12><b>"+style_resultat_conclusion(Contamination)+"</b></font>",style)
-    P_seuil_m = Paragraph("<font size=12><font color=darkblue>N : </font>"+str(seuil_marqueur)+"</font>",style)
-    P_seuil_h = Paragraph("<font size=12><font color=darkblue>H : </font>"+str(seuil_pic)+"</font>",style)
     
 
     aH = aH - h
@@ -546,12 +572,9 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     w, h = P_nb_Nconta.wrap(aW,aH)
     P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
 
-    if Concordance_mf == "OUI" and Concordance_pf == "NON":
-        w, h = P_seuil_m.wrap(aW,aH)
-        P_seuil_m.drawOn(canv, 505,aH-h)
-    elif Concordance_mf=="OUI":
-        w, h = P_seuil_m.wrap(aW,aH)
-        P_seuil_m.drawOn(canv, alignement_col_droite,aH-h)
+    if Concordance_pf == "OUI" and Concordance_mf == "NON":
+        Par.drawOn(canv,alignement_col_gauche, aH-100)
+        
     
     aH = aH - (h+10)
     if Concordance_pf != "ABS":
@@ -560,13 +583,6 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
 
     w, h = P_nb_conta.wrap(aW,aH)
     P_nb_conta.drawOn(canv, alignement_col_centre,aH-(h-10))
-
-    if Concordance_mf == "OUI" and Concordance_pf == "NON":
-        w, h =P_seuil_h.wrap(aW,aH)
-        P_seuil_h.drawOn(canv, 505,aH-(h-10))
-    elif Concordance_mf=="OUI":
-        w, h =P_seuil_h.wrap(aW,aH)
-        P_seuil_h.drawOn(canv, alignement_col_droite,aH-(h-10))
 
     aH = aH - h
     w, h = P_moy.wrap(aW,aH)
@@ -577,16 +593,9 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     w, h = P_conta_echantillon.wrap(aW,aH)
     P_conta_echantillon.drawOn(canv, alignement_col_gauche,aH-h)
 
-    if Concordance_mf == "NON":
-        aH = aH - (h*2+2)
+    if Concordance_mf == "NON" and Concordance_pf== "NON":
+        aH = aH - 55
         Par.drawOn(canv,alignement_col_gauche, aH)
-        aH = aH - h
-        w, h = P_seuil_m.wrap(aW,aH)
-        P_seuil_m.drawOn(canv, alignement_col_gauche+4,aH)
-        
-        aH = aH - h
-        w, h = P_seuil_h.wrap(aW,aH)
-        P_seuil_h.drawOn(canv, alignement_col_gauche+4,aH)
         
 
     canv.save()
@@ -645,20 +654,20 @@ if __name__ == "__main__":
     
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_abs_concord_mere_pere_abs"
-    nom_fichier_mere="mere"
-    nom_fichier_foetus="foetus"
-    nom_fichier_pere="pere"
+    nom_projet="ex_abs_concord_mere"
+    nom_fichier_mere="MMMMMMMMMMM"
+    nom_fichier_foetus="wwwwGGGGMMM"
+    nom_fichier_pere="QQQQQmmmGGG"
     date="01/01/1999"
-    Sexe="I"
+    Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
-    choix_utilisateur=0
+    choix_utilisateur=8
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 4
     seuil_pourcentage = 0.42
-    presence_pere = "ABS"
+    presence_pere = "OUI"
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
