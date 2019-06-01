@@ -93,7 +93,7 @@ def init_pdf(path,filename,Concordance_mf, Concordance_pf):
 def colonne_marqueur(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
-    return Paragraph("<para align=center spaceb=15> <font size=9><b>"+mot+"</b></font></para>",style)
+    return Paragraph("<para align=center spaceb=15> <font size=11><b>"+mot+"</b></font></para>",style)
 
 def colonne(mot):
     styles = getSampleStyleSheet()
@@ -119,8 +119,12 @@ def style_resultat_tableau(mot):
             return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
 
 def style_resultat_conclusion(mot):
-    if mot=="OUI" or mot[0:33] == "L'échantillon n'est pas contaminé":
+    if mot[0:33] == "L'échantillon n'est pas contaminé":
         return "<font color=green><font size=13>"+mot+"</font></font>"
+    if mot=="OUI":
+        return "<font color=green><font size=11>"+mot+"</font></font>"
+    if mot == "NON":
+        return "<font color=red><font size=11>"+mot+"</font></font>"
     if mot != "ABS":
         return "<font color=red><font size=13>"+mot+"</font></font>"
     return mot
@@ -175,7 +179,6 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
                                     ('SPAN',(0,2),(5,2)),
                                     ('SPAN',(0,0),(0,1)),
                                     ('BACKGROUND',(0,2),(5,2),colors.lightgrey),
-                                    ('LINEABOVE',(0,2),(4,2),1.5,colors.white),
                                     ('VALIGN',(1,0),(3,2),'MIDDLE'),
                                     ('VALIGN',(4,0),(5,1),'MIDDLE'),
                                     ('ALIGN',(0,0),(3,2),'CENTER'),
@@ -351,7 +354,10 @@ def resultats(data,dataframe,Concordance_mf, Concordance_pf):
                      data[marqueurs][2] = style_resultat_tableau(dataframe["Conclusion"][marqueurs-2])
                      data[marqueurs][3] = " / "
                 if dataframe["Détails M/F"][marqueurs-2]!="Echo" and dataframe["Détails M/F"][marqueurs-2]!="Mêmes allèles que la mère" and dataframe["Détails M/F"][marqueurs-2]!="Mère homozygote":
-                     data[marqueurs][3] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
+                     if dataframe["Détails M/F"][marqueurs-2] != "":
+                         data[marqueurs][3] = style_resultat_tableau(dataframe["Détails M/F"][marqueurs-2])
+                     else:
+                         data[marqueurs][3] = " / "
                      data[marqueurs][4] = " / "
                 else:
                      data[marqueurs][3] = " / "
@@ -449,7 +455,6 @@ def style_result(data,Concordance_mf, Concordance_pf,l_info):
 
 def adaptation_font_size(mot,Concordance_mf,Concordance_pf):
     if Concordance_mf=="NON" or Concordance_pf=="NON":
-        print(len(mot),'   L431')
         if len(mot)<=24:
             font=12
         if len(mot)>24 and len(mot)<=33:
@@ -546,9 +551,9 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     aH = aH - h
     w, h = Par.wrap(aW, aH)
     if Concordance_mf == "OUI" and Concordance_pf == "NON":
-        Par.drawOn(canv,155, aH-77)
+        Par.drawOn(canv,90, aH-77)
     elif Concordance_mf=="OUI":
-        Par.drawOn(canv,400, aH-85)
+        Par.drawOn(canv,200, aH-85)
     
 
     P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+style_resultat_conclusion(Concordance_pf)+"</font>",style)
@@ -573,7 +578,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
 
     if Concordance_pf == "OUI" and Concordance_mf == "NON":
-        Par.drawOn(canv,alignement_col_gauche, aH-100)
+        Par.drawOn(canv,80, aH-100)
         
     
     aH = aH - (h+10)
@@ -595,9 +600,8 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
 
     if Concordance_mf == "NON" and Concordance_pf== "NON":
         aH = aH - 55
-        Par.drawOn(canv,alignement_col_gauche, aH)
+        Par.drawOn(canv,80, aH)
         
-
     canv.save()
 
 
@@ -650,11 +654,10 @@ if __name__ == "__main__":
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_mere)
-    
+    M, F, P, Echantillon_F = lecture_fichier(ex_conta)
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_abs_concord_mere"
+    nom_projet="ex_contamine"
     nom_fichier_mere="MMMMMMMMMMM"
     nom_fichier_foetus="wwwwGGGGMMM"
     nom_fichier_pere="QQQQQmmmGGG"
@@ -662,14 +665,13 @@ if __name__ == "__main__":
     Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
-    choix_utilisateur=8
+    choix_utilisateur=1
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
-    seuil_marqueur = 4
+    seuil_marqueur = 0
     seuil_pourcentage = 0.42
     presence_pere = "OUI"
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
     creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere,Entite_d_Application, Emetteur, version)
-
