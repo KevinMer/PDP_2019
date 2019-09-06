@@ -654,10 +654,10 @@ if __name__ == "__main__":
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_conta)
+    M, F, P, Echantillon_F = lecture_fichier(ex_non_conta)
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_contamine"
+    nom_projet="ex_non_contamine"
     nom_fichier_mere="MMMMMMMMMMM"
     nom_fichier_foetus="wwwwGGGGMMM"
     nom_fichier_pere="QQQQQmmmGGG"
@@ -665,7 +665,7 @@ if __name__ == "__main__":
     Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
-    choix_utilisateur=1
+    choix_utilisateur=0
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 0
