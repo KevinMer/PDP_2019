@@ -681,7 +681,7 @@ class Foetus(Patient):
         for alleles in range(3):
             if self.allele[alleles] not in mere.allele:
                 self.allele.pop(alleles)
-                self.hauteur.pop(alleles)
+                pic_pere = self.hauteur.pop(alleles)
                 break
         if self.hauteur[0] < self.hauteur[1] * seuil or self.hauteur[1] < self.hauteur[0] * seuil:
             self.contamination = 2
@@ -689,11 +689,11 @@ class Foetus(Patient):
             if self.hauteur[1] < self.hauteur[0] * seuil:
                 allele_contaminant = 1
                 taux = ((self.hauteur[allele_contaminant]) / (
-                            self.hauteur[allele_contaminant] + self.hauteur[0])) * 100
+                            self.hauteur[allele_contaminant] + pic_pere)) * 100
             else:
                 allele_contaminant = 0
                 taux = ((self.hauteur[allele_contaminant]) / (
-                            self.hauteur[allele_contaminant] + self.hauteur[1])) * 100
+                            self.hauteur[allele_contaminant] + pic_pere)) * 100
             self.taux = round(taux,2)
         else:
             self.contamination = 3
@@ -832,6 +832,5 @@ def homogeneite_type(list_allele, list_hauteur):
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F = lecture_fichier('pp16-dmpk-crampe-050219_PP16.txt')
+    M, F, P, Echantillon_F = lecture_fichier('181985_xfra_ja_200618_PP16.txt')
     resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
-    print(Echantillon_F.get_name())
