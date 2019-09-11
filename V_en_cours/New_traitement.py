@@ -540,20 +540,24 @@ class Patient:
             informatif (int) : informatif character of marker
     """
 
-    def __init__(self, marqueur, allele, hauteur, informatif):
+    def __init__(self,num, marqueur, allele, hauteur, informatif):
         """ The constructor for Patient class
 
             Parameters :
+            num (str) : name 
             marqueur (list) : markers list
             allele (list) : alleles list
             hauteur (list) : alleles height list
             informatif (int) : informatif character of marker
         """
-
+        self.num = num
         self.marqueur = marqueur
         self.allele = allele
         self.hauteur = hauteur
         self.informatif = informatif
+
+    def get_name(self):
+        return self.num
 
     def allele_semblable(self, mere):
         """ Check for each marker if fetus and mother have the same alleles list.
@@ -611,14 +615,14 @@ class Mere(Patient):
             homozygote (boolean) : set to True if the mother is homozygous for the marker studied
     """
 
-    def __init__(self, marqueur, allele, hauteur, informatif, homozygote):
+    def __init__(self,num, marqueur, allele, hauteur, informatif, homozygote):
         """ The constructor for Mere class
 
             Parameters :
                 - homozygote (boolean) : set to True if the mother is homozygous for the marker studied
         """
 
-        super().__init__(marqueur, allele, hauteur, informatif)
+        super().__init__(num,marqueur, allele, hauteur, informatif)
         self.homozygote = homozygote
 
     def homozygotie(self):
@@ -637,7 +641,7 @@ class Foetus(Patient):
             - taux (int) : value corresponding to the contamination
     """
 
-    def __init__(self, marqueur, allele, hauteur, concordance_mere_foetus, informatif, num_foetus, contamination, taux):
+    def __init__(self, num,marqueur, allele, hauteur, concordance_mere_foetus, informatif, contamination, taux):
         """ The constructor for Mere class
 
             Parameters :
@@ -645,14 +649,11 @@ class Foetus(Patient):
                 - taux (int) : value corresponding to the contamination
         """
 
-        super().__init__(marqueur, allele, hauteur, informatif)
-        self.num_foetus = num_foetus
+        super().__init__(num, marqueur, allele, hauteur, informatif)
         self.contamination = contamination
         self.taux = taux
         self.concordance_mere_foetus = concordance_mere_foetus
 
-    def get_num_foetus(self):
-        return self.num_foetus
 
     def foetus_pics(self):
         """ Count spikes number (alleles number)
@@ -731,14 +732,9 @@ class Pere(Patient):
         Did not implement because mother and fetus are enough to conclude.
     """
 
-    def __init__(self, marqueur, allele, hauteur, informatif, num_pere, concordance_pere_foetus):
-        super().__init__(marqueur, allele, hauteur, informatif)
-        self.num_pere = num_pere
+    def __init__(self, num, marqueur, allele, hauteur, informatif, concordance_pere_foetus):
+        super().__init__(num, marqueur, allele, hauteur, informatif)
         self.concordance_pere_foetus = concordance_pere_foetus
-
-    def get_num_pere(self):
-        return self.num_pere
-
 
 def lecture_fichier(path_data_frame):
     """ Read file corresponding to path_data_frame.
@@ -769,21 +765,21 @@ def lecture_fichier(path_data_frame):
     try:
         if (donnees.shape[0] > 32):
             iterateur = 3
-            num_pere = donnees["Sample Name"].values[2]
+            num_pere = re.search("\w-(\w*)",donnees["Sample Name"].values[2]).group(1)
         allele_na = donnees[["Allele 1", "Allele 2", "Allele 3"]].values
         hauteur_na = donnees[["Height 1", "Height 2", "Height 3"]].values
         date_echantillon = re.search("(\d{4}-\d{2}-\d{2})", donnees["Sample File"].values[0]).group()
         nom_echantillon = re.search("\w-(\w*)",donnees["Sample Name"].values[1]).group(1)
-        num_foetus = donnees["Sample Name"].values[1]
+        num_mere = re.search("\w-(\w*)",donnees["Sample Name"].values[0]).group(1)
         allele, hauteur = homogeneite_type(allele_na, hauteur_na)
         for ligne in range(0, donnees.shape[0] - 1, iterateur):
-            m = Mere(donnees["Marker"][ligne], allele[ligne],
+            m = Mere(num_mere,donnees["Marker"][ligne], allele[ligne],
                      hauteur[ligne], None, False)
-            f = Foetus(donnees["Marker"][ligne], allele[ligne + 1],
-                       hauteur[ligne + 1], None, None, num_foetus, None, None)
+            f = Foetus(nom_echantillon,donnees["Marker"][ligne], allele[ligne + 1],
+                       hauteur[ligne + 1], None, None, None, None)
             if (iterateur == 3):
-                p = Pere(donnees["Marker"][ligne],
-                         allele[ligne + 2], hauteur[ligne + 2], None, num_pere, None)
+                p = Pere(num_pere,donnees["Marker"][ligne],
+                         allele[ligne + 2], hauteur[ligne + 2], None, None)
                 donnees_pere.append(p)
             donnees_mere.append(m)
             donnees_foetus.append(f)
