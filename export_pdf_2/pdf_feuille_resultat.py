@@ -457,7 +457,7 @@ def adaptation_font_size(mot,Concordance_mf,Concordance_pf):
     if Concordance_mf=="NON" or Concordance_pf=="NON":
         if len(mot)<=24:
             font=12
-        if len(mot)>24 and len(mot)<=33:
+        elif len(mot)>24 and len(mot)<=33:
             font = 10.4
         else:
             font=8.9
@@ -556,8 +556,8 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         Par.drawOn(canv,200, aH-85)
     
 
-    P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: </b></font>"+style_resultat_conclusion(Concordance_pf)+"</font>",style)
-    P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: </b></font>"+style_resultat_conclusion(Concordance_mf)+"</font>",style)
+    P_concordance_p = Paragraph("<font size=12><font color=darkblue><b>Concordance père/foetus: "+Concordance_pf+"</b></font></font>",style)
+    P_concordance_m = Paragraph("<font size=12><font color=darkblue><b>Concordance mère/foetus: "+Concordance_mf+"</b></font></font>",style)
     if Concordance_mf != "NON":
         P_nb_Nconta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs non contaminés : </font><font color=green>"+str(nb_info_Nconta)+"</font></font></b>",style)
         P_nb_conta = Paragraph("<b><font size=12><font color=darkblue>Marqueurs informatifs contaminés : </font><font color=red>"+str(nb_info_Conta)+"</font></font></b>",style)
@@ -654,18 +654,18 @@ if __name__ == "__main__":
     ex = ""
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_non_conta)
+    M, F, P, Echantillon_F = lecture_fichier(ex_conta)
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_non_contamine"
-    nom_fichier_mere="MMMMMMMMMMM"
-    nom_fichier_foetus="wwwwGGGGMMM"
-    nom_fichier_pere="QQQQQmmmGGG"
+    nom_projet="ex_conta"
+    nom_fichier_mere="MMMMM"
+    nom_fichier_foetus="wwww"
+    nom_fichier_pere="QQQQ"
     date="01/01/1999"
     Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
-    choix_utilisateur=0
+    choix_utilisateur=1
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 0
