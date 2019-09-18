@@ -411,12 +411,12 @@ class Echantillon:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux) + "%")
                         elif liste_F[nbres].contamination == 2:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append( str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta_majeur += 1
                             resultat["Conclusion"].append("Contaminé")
@@ -470,12 +470,12 @@ class Echantillon:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux) + "%")
                         elif liste_F[nbres].contamination == 2:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Taux contamination : " + str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append( str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta_majeur += 1
                             resultat["Conclusion"].append("Contaminé")
@@ -828,5 +828,7 @@ def homogeneite_type(list_allele, list_hauteur):
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F = lecture_fichier('181985_xfra_ja_200618_PP16.txt')
+    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
     resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
+    print(resultats, "\n")
+    print (conclusion)

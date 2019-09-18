@@ -1,26 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Version : 1.0 stable 05.24.2019 LACFoM
-
-# Authors : Kévin Merchadou, Mirna Marie-Joseph, Théo Gauvrit
-#
-# This software is distributed under GNU General Public License v3.0
-#
-# With  7. Additional Terms.
-#  "Additional permissions" are terms that supplement the terms of this
-# License by making exceptions from one or more of its conditions.
-# Additional permissions that are applicable to the entire Program shall
-# be treated as though they were included in this License, to the extent
-# that they are valid under applicable law.  If additional permissions
-# apply only to part of the Program, that part may be used separately
-# under those permissions, but the entire Program remains governed by
-# this License without regard to the additional permissions.
-#
-#  1.Prohibiting misrepresentation of the origin of that material, or
-#    requiring that modified versions of such material be marked in
-#    reasonable ways as different from the original version;
-# https://www.gnu.org/licenses/gpl-3.0.html
-
 import os
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4,landscape
@@ -90,6 +67,13 @@ def init_pdf(path,filename,Concordance_mf, Concordance_pf):
 
 '''Mise en page'''
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def colonne_marqueur(mot):
     styles = getSampleStyleSheet()
     style = styles["BodyText"]
@@ -110,11 +94,12 @@ def style_resultat_tableau(mot):
             return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         if mot=="Non contaminé" or mot=="OUI":
             return Paragraph("<para align=center spaceb=3><font size=11><font color=green>"+mot+"</font></font></para>",style)
-        if mot[0:4]=="Taux":
-            mot=mot[20:]
+        if mot == "Contamination majeure":
             return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         if mot=="Informatif":
             return Paragraph("<para align=center spaceb=3><font size=11><b>"+mot+"</b></font></para>",style)
+        if is_number(mot[:len(mot)-1]):
+            return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         else:
             return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
 
@@ -529,7 +514,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
             w, h = tableau_principal.wrap(aW, aH)
             tableau_principal.drawOn(canv, 30, aH-h)
         else:
-            aH = aH - (h+2)
+            aH = aH - (h+4)
             w, h = tableau_principal.wrap(aW, aH)
             tableau_principal.drawOn(canv,5, aH-h)
     else:
@@ -551,7 +536,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     aH = aH - h
     w, h = Par.wrap(aW, aH)
     if Concordance_mf == "OUI" and Concordance_pf == "NON":
-        Par.drawOn(canv,90, aH-77)
+        Par.drawOn(canv,90, aH-75)
     elif Concordance_mf=="OUI":
         Par.drawOn(canv,200, aH-85)
     
@@ -570,7 +555,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     P_conta_echantillon = Paragraph("<font size=12><b>"+style_resultat_conclusion(Contamination)+"</b></font>",style)
     
 
-    aH = aH - h
+    aH = aH - 5
     w, h = P_concordance_m.wrap(aW,aH)
     P_concordance_m.drawOn(canv, alignement_col_gauche,aH-h)
     
@@ -628,7 +613,7 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
       Emetteur (string) : 
       version (string) : version of the software
     Function: Creates a PDF according to the parameters given, in the directory gave by path
-    Output: None
+    Output: New pdf file
     '''
 
 
@@ -646,26 +631,55 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
     disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
 
 
+
 if __name__ == "__main__":
-    from Traitement2 import*
+    from New_traitement import*
     n_conc = "exemple_absence_totale_concordance.txt"
     ex_non_conta = "PP16_XFra_FAURE_290119_PP16.txt"
     ex_conta = "2018-03-27 foetus 90-10_PP16.txt"
-    ex = ""
+    ex_conta_maj = "PP16_JA_VR_050919_PP16.txt"
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
-    M, F, P, Echantillon_F = lecture_fichier(ex_conta)
+    
+    test=input("Tester le cas: \n 0:absence total de concordance \n 1:absence concordance chez mère uniquement \n 2:absence concordance chez père uniquement \n 3:échantillon non contaminé \n 4:échantillon contaminé \n 5:échantillon contaminé de façon majeur\n")
+    if test == 0:
+        M, F, P, Echantillon_F = lecture_fichier(n_conc)
+        nom_projet="ex_n_conc"
+        choix_utilisateur=10
+    if test == 1:
+        M, F, P, Echantillon_F = lecture_fichier( ex_n_conc_mere)
+        nom_projet=" ex_n_conc_mere"
+        choix_utilisateur=10
+
+    if test == 2:
+        M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
+        nom_projet="ex_n_conc_pere"
+        choix_utilisateur=0
+
+    if test == 3:
+        M, F, P, Echantillon_F = lecture_fichier(ex_non_conta)
+        nom_projet="ex_non_conta"
+        choix_utilisateur=0
+
+    if test == 4:
+        M, F, P, Echantillon_F = lecture_fichier(ex_conta)
+        nom_projet="ex_conta"
+        choix_utilisateur=1
+
+    else:
+        M, F, P, Echantillon_F = lecture_fichier(ex_conta_maj)
+        nom_projet="ex_conta_maj"
+        choix_utilisateur=1
+
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_projet="ex_conta"
     nom_fichier_mere="MMMMM"
     nom_fichier_foetus="wwww"
     nom_fichier_pere="QQQQ"
-    date="01/01/1999"
+    date="04/02/2042"
     Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
-    choix_utilisateur=1
     nom_pdf= nom_projet+"_"+nom_utilisateur
     seuil_pic = 42
     seuil_marqueur = 0
