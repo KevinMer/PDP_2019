@@ -416,11 +416,11 @@ class Echantillon:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append( str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta_majeur += 1
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Contamination majeure")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux[0]) + "% / " + str(liste_F[nbres].taux[1]) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Mêmes allèles que la mère")
@@ -432,9 +432,9 @@ class Echantillon:
                     moyenne_conta = somme_conta / marqueurs_conta
                 except ZeroDivisionError:
                     moyenne_conta = 0
-                if marqueurs_conta == 0 and marqueurs_conta_majeur >= 1:
+                if marqueurs_conta_majeur >= 1:
                     conclusion = pd.DataFrame(
-                        {"1": [int(marqueurs_non_conta), int(marqueurs_conta + marqueurs_conta_majeur), "MAJEUR", self.get_date()]},
+                        {"1": [int(marqueurs_non_conta), int(marqueurs_conta + marqueurs_conta_majeur), "MAJEURE", self.get_date()]},
                         index=["Nombre de marqueurs informatifs non contaminés",
                            "Nombre de marqueurs informatifs contaminés",
                            "Moyenne du pourcentage de contamination", "Date"])
@@ -475,11 +475,11 @@ class Echantillon:
                             marqueurs_conta += 1
                             somme_conta = somme_conta + liste_F[nbres].taux
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append( str(liste_F[nbres].taux) + "%")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux) + "%")
                         else:
                             marqueurs_conta_majeur += 1
                             resultat["Conclusion"].append("Contaminé")
-                            resultat["Détails M/F"].append("Contamination majeure")
+                            resultat["Détails M/F"].append(str(liste_F[nbres].taux[0]) + "% / " + str(liste_F[nbres].taux[1]) + "%")
                     elif liste_F[nbres].informatif == 2:
                         resultat["Conclusion"].append("Non informatif")
                         resultat["Détails M/F"].append("Mêmes allèles que la mère")
@@ -493,9 +493,9 @@ class Echantillon:
                 moyenne_conta = somme_conta / marqueurs_conta
             except ZeroDivisionError:
                 moyenne_conta = 0
-            if marqueurs_conta == 0 and marqueurs_conta_majeur >= 1:
+            if marqueurs_conta_majeur >= 1:
                     conclusion = pd.DataFrame(
-                        {"1": [int(marqueurs_non_conta), int(marqueurs_conta + marqueurs_conta_majeur), "MAJEUR", self.get_date()]},
+                        {"1": [int(marqueurs_non_conta), int(marqueurs_conta + marqueurs_conta_majeur), "MAJEURE", self.get_date()]},
                         index=["Nombre de marqueurs informatifs non contaminés",
                            "Nombre de marqueurs informatifs contaminés",
                            "Moyenne du pourcentage de contamination", "Date"])
@@ -697,8 +697,13 @@ class Foetus(Patient):
                             self.hauteur[allele_contaminant] + pic_pere)) * 100
             self.taux = round(taux,2)
         else:
+            taux1 = ((self.hauteur[1]) / (
+                            self.hauteur[1] + pic_pere)) * 100
+            taux2 = ((self.hauteur[0]) / (
+                            self.hauteur[0] + pic_pere)) * 100
             self.contamination = 3
             self.informatif = 1
+            self.taux=[round(taux1,2),round(taux2,2)]
 
     def contamination_homozygote(self, seuil):
         """ Check if the marker is homozygous contaminated.
@@ -828,7 +833,7 @@ def homogeneite_type(list_allele, list_hauteur):
 
 
 if __name__ == "__main__":
-    M, F, P, Echantillon_F = lecture_fichier('2018-03-27 foetus 90-10_PP16.txt')
+    M, F, P, Echantillon_F = lecture_fichier('PP16 JB 050919_PP16.txt')
     resultats, conclusion = Echantillon_F.analyse_donnees(M, F, P)
-    print(resultats, "\n")
-    print (conclusion)
+    print(resultats)
+    print(conclusion)

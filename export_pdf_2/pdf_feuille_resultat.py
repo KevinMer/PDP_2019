@@ -98,7 +98,7 @@ def style_resultat_tableau(mot):
             return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         if mot=="Informatif":
             return Paragraph("<para align=center spaceb=3><font size=11><b>"+mot+"</b></font></para>",style)
-        if is_number(mot[:len(mot)-1]):
+        if is_number(mot[:len(mot)-1]) or is_number(mot[:mot.find('/')-2]):
             return Paragraph("<para align=center spaceb=3><font size=11><font color=red>"+mot+"</font></font></para>",style)
         else:
             return Paragraph("<para align=center spaceb=3><font size=11><font color=black>"+mot+"</font></font></para>",style)
@@ -122,7 +122,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
     Concordance_pf (string) : consistency between the DNA of the father and the foetus
         function:
     Create the formatted table for the header of the chu from their logo, Entite_d_Application, Emetteur and the version of the app. 
-    Create the formatted table for the title with the logo of the app
+    Create the formatted table for the title with the logo of the app LaCFOM
     Create a matrix with a line for each marker, and the appropriate column dependending of the consistency of the DNA between the foetus and the mother/the father.
         output:
     CHU_HEADER (reportlab.platypus.tables.Table) : table containing the header of the CHU
@@ -144,7 +144,7 @@ def creat_struct_pdf(Concordance_mf, Concordance_pf,Entite_d_Application,Emetteu
 
     
     entite = Paragraph("<font size=12><b>Entité d'application :</b> "+Entite_d_Application+"</font>",style)
-    emetteur = Paragraph("<font size=12><b>Emetteur  :</b>"+Emetteur+" </font>",style)
+    emetteur = Paragraph("<font size=12><b>Emetteur :</b>"+Emetteur+" </font>",style)
     no_version = Paragraph("<font size=12><b>"+version+"</b></font>",style)
     doc = Paragraph("<para align=center spaceb=3><font size=12>DOCUMENT D’ENREGISTREMENT</font></para>",style)
     page = Paragraph("<font size=12>Page : 1/1</font>",style)
@@ -641,7 +641,7 @@ if __name__ == "__main__":
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
     
-    test=input("Tester le cas: \n 0:absence total de concordance \n 1:absence concordance chez mère uniquement \n 2:absence concordance chez père uniquement \n 3:échantillon non contaminé \n 4:échantillon contaminé \n 5:échantillon contaminé de façon majeur\n")
+    test=input("Tester le cas: \n 0:absence total de concordance \n 1:absence concordance chez mère uniquement \n 2:absence concordance chez père uniquement \n 3:échantillon non contaminé \n 4:échantillon contaminé \n 5:échantillon contaminé de façon majeur\n ")
     if test == 0:
         M, F, P, Echantillon_F = lecture_fichier(n_conc)
         nom_projet="ex_n_conc"
@@ -670,6 +670,7 @@ if __name__ == "__main__":
         M, F, P, Echantillon_F = lecture_fichier(ex_conta_maj)
         nom_projet="ex_conta_maj"
         choix_utilisateur=1
+        
 
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
