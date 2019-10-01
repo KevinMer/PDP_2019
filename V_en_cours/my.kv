@@ -5,12 +5,13 @@
 #version application 1.0
 
 ScreenManagement:
+    
 
     EcranPremier:
     EcranFct:
 
 
-    
+
 <EcranPremier>:
     name:"EcranAccueil"
     BoxLayout:
@@ -27,14 +28,14 @@ ScreenManagement:
         BoxLayout:
             padding:100
             orientation: 'vertical'
-            
+
             BoxLayout:
                 Label:
                     size_hint:(0.40,0.40)
                     text:" Indiquer un nom d'utilisateur : "
                     font_size: "30sp"
                     color: [256, 256, 256, 1]
-                
+
                 BoxLayout:
                     size_hint:(0.18,0.40)
                     TextInput:
@@ -45,20 +46,20 @@ ScreenManagement:
                         multiline: False
             BoxLayout:
                 Label:
-                    size_hint:(0.40,0.40)   
+                    size_hint:(0.40,0.40)
                     text:" Choisir un fichier : "
                     font_size: "30sp"
                     color: [256, 256, 256, 1]
-                
+
                 BoxLayout:
                     size_hint:(0.18,0.40)
                     Button:
-                        
+
                         background_normal: ''
                         background_color: (75/255, 127/255, 209/255,1)
                         text: "Ouvrir"
-                        font_size: "25sp"
-                        
+                        font_size: "24sp"
+
                         on_release:
                             if(text_nom_utilisateur.text!=""):root.show_load(text_nom_utilisateur.text)
 
@@ -164,6 +165,7 @@ ScreenManagement:
                         color: [0.949, 0.945, 0.945, 1]
                         text: 'Documentation'
                         size_hint_y: None
+                        on_release:ecranfct.ouverture_manuel()
                         on_release:dropdown2.dismiss()
             BoxLayout:
         BoxLayout:
@@ -175,164 +177,6 @@ ScreenManagement:
                 tab_width: None
                 do_default_tab: False
 
-<LoadDialog>:
-    BoxLayout:
-        canvas:
-            Color:
-                rgba:(75/255, 127/255, 209/255,1)
-            Line:
-                width:3
-                rectangle:(self.x, self.y, self.width, self.height)
-            Color:
-
-                rgba:0.949, 0.945, 0.945, 1
-
-            Rectangle:
-                pos: self.pos
-                size: self.size
-                size: root.size
-
-        size: root.size
-        pos: root.pos
-        orientation: "vertical"
-        BoxLayout:
-            id:filechooser
-
-            #drives_list: drives_list
-            file_chooser: file_chooser
-            filechooser_path:file_chooser.path
-            BoxLayout:
-                size_hint_x:0.18
-                canvas:
-                    Color:
-                        rgba:(75/255, 127/255, 209/255,1)
-                    Line:
-                        width:3
-                        rectangle:(self.x, self.y, self.width, self.height)
-                    Color:
-                        rgba:0.949, 0.945, 0.945, 1
-
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                ListView:
-                    id: drives_list
-
-                    adapter:
-                        la.ListAdapter(data=root.get_win_drives(),
-                        selection_mode='single',
-                        allow_empty_selection=False,
-                        cls=lv.ListItemButton)
-
-            FileChooserIconView:
-                id: file_chooser
-                path:root.path
-                filters:['*.txt']
-                dirselect: True
-                on_submit:
-                    if(root.load(file_chooser.path, file_chooser.selection)):root.ecran.panel.manager.current="ecran_principale"
-
-        BoxLayout:
-            size_hint_y: None
-            height: 30
-            spacing:10
-            padding:10
-            Button:
-                
-                background_normal: ''
-                background_color: (75/255, 127/255, 209/255,1)
-                color: [0.949, 0.945, 0.945, 1]
-                text: "Annuler"
-                on_release: root.cancel()
-
-            Button:
-                
-                background_normal: ''
-                background_color: (75/255, 127/255, 209/255,1)
-                color: [0.949, 0.945, 0.945, 1]
-                text: "Ouvrir"
-                on_release: 
-                    if(root.load(file_chooser.path, file_chooser.selection)):root.ecran.panel.manager.current="ecran_principale"
-                
-
-<SaveDialog>:
-    text_input: text_input
-    BoxLayout:
-        canvas:
-            Color:
-                rgba:(75/255, 127/255, 209/255,1)
-            Line:
-                width:3
-                rectangle:(self.x, self.y, self.width, self.height)
-            Color:
-
-                rgba:0.949, 0.945, 0.945, 1
-
-            Rectangle:
-                pos: self.pos
-                size: self.size
-                size: root.size
-        pos: root.pos
-        orientation: "vertical"
-        BoxLayout:
-            id:filechooser
-            #drives_list: drives_list
-            file_chooser: file_chooser
-            filechooser_path:file_chooser.path
-            BoxLayout:
-                size_hint_x:0.18
-                canvas:
-                    Color:
-                        rgba:(75/255, 127/255, 209/255,1)
-                    Line:
-                        width:3
-                        rectangle:(self.x, self.y, self.width, self.height)
-                    Color:
-                        rgba:0.949, 0.945, 0.945, 1
-
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                ListView:
-                    id: drives_list
-
-                    adapter:
-                        la.ListAdapter(data=root.get_win_drives(),
-                        selection_mode='single',
-                        allow_empty_selection=False,
-                        cls=lv.ListItemButton)
-            FileChooserIconView:
-                id: file_chooser
-                filters:['*.txt']
-                dirselect: True
-                path:root.path
-        
-            
-        TextInput:
-            id: text_input
-            size_hint_y: None
-            text:root.nom_pdf
-            height: 30
-            multiline: False
-
-        BoxLayout:
-            size_hint_y: None
-            height: 30
-            spacing:10
-            padding:10
-            Button:
-                background_normal: ''
-                background_color: (75/255, 127/255, 209/255,1)
-                color: [0.949, 0.945, 0.945, 1]
-                text: "Annuler"
-                on_release: root.cancel()
-
-            Button:
-                background_normal: ''
-                background_color: (75/255, 127/255, 209/255,1)
-                color: [0.949, 0.945, 0.945, 1]
-                text: "Sauvegarder"
-                on_release: root.save(file_chooser.path, text_input.text)
 
 
 <ParametreDialog>:
@@ -356,12 +200,12 @@ ScreenManagement:
         BoxLayout:
             orientation:"vertical"
             Label:
-                text:"Param\u00e8tre de d\u00e9ctection de contamination"
+                text:"Param\u00e8tres de d\u00e9tection de contamination"
                 color: [256, 256, 256, 1]
             BoxLayout:
                 padding:40,0,40,60
                 BoxLayout:
-                    
+
                     Label:
                         id: lab_premier_para
                         color: [256, 256, 256, 1]
@@ -376,25 +220,25 @@ ScreenManagement:
                         size_hint_y: None
                         text_size :self.size
                 BoxLayout:
-                    
+
                     TextInput:
                         id: text_input1_para
                         text:root.nb
                         size_hint_y: None
                         height: self.minimum_height
                         multiline: False
-            
+
             BoxLayout:
                 padding:40,0,40,60
                 BoxLayout:
-                    
+
                     Label:
                         id:lab_troisieme_para
                         color: [256, 256, 256, 1]
-                        text: "Hauteur de pics dicriminant un all\u00e8le contamin\u00e9 d'un all\u00e8le normal (d\u00e9faut:1/3)"
+                        text: "Hauteur de pics discriminant un all\u00e8le contamin\u00e9 d'un all\u00e8le normal (d\u00e9faut:1/3)"
                         size_hint_y: None
                         text_size :self.size
-                    
+
                     Label:
                         size_hint_x:0.07
                         color: [256, 256, 256, 1]
@@ -402,7 +246,7 @@ ScreenManagement:
                         size_hint_y: None
                         text_size :self.size
                 BoxLayout:
-                    
+
                     TextInput:
                         id: text_input3_para
                         text:root.hauteur
@@ -412,12 +256,12 @@ ScreenManagement:
         BoxLayout:
             orientation:"vertical"
             Label:
-                text:"Param\u00e8tre \u00e9diteur"
+                text:"Param\u00e8tres \u00e9diteur"
                 color: [256, 256, 256, 1]
             BoxLayout:
                 padding:40,0,40,60
                 BoxLayout:
-                    
+
                     Label:
                         id:lab_quatrieme_para
                         color: [256, 256, 256, 1]
@@ -425,7 +269,7 @@ ScreenManagement:
                         size_hint_y: None
                         text_size :self.size
                 BoxLayout:
-                    
+
                     TextInput:
                         id: text_input4_para
                         text:root.emetteur
@@ -435,7 +279,7 @@ ScreenManagement:
             BoxLayout:
                 padding:40,0,40,60
                 BoxLayout:
-                    
+
                     Label:
                         id:lab_cinqueime_para
                         color: [256, 256, 256, 1]
@@ -443,14 +287,15 @@ ScreenManagement:
                         size_hint_y: None
                         text_size :self.size
                 BoxLayout:
-                    
+
                     TextInput:
                         id: text_input5_para
                         text:root.entite
                         size_hint_y: None
                         height: self.minimum_height
                         multiline: False
-                
+
+
         BoxLayout:
             size_hint_y: None
             height: 30
@@ -467,7 +312,7 @@ ScreenManagement:
                 background_color: (75/255, 127/255, 209/255,1)
                 color: [0.949, 0.945, 0.945, 1]
                 text: "R\u00e9initialiser"
-                on_release: 
+                on_release:
                     text_input1_para.text="2"
                     text_input3_para.text= "1\u002F3"
                     text_input4_para.text= "PBP-P2A-GEN"
@@ -484,7 +329,7 @@ ScreenManagement:
     id:resanalyse
     titre:""
     padding:20
-    
+
     canvas:
         Color:
             rgba:(75/255, 127/255, 209/255,1)
@@ -498,29 +343,55 @@ ScreenManagement:
             pos: self.pos
             size: self.size
 
-     
-   
+
+
 
     GridLayout:
         id: resultat_grd_frame
         cols: 1
         rows: 4
-        spacing:15
-
+        spacing:28
+        padding:60,10,60,10
         BoxLayout:
-            padding:40,0,40,0
+            spacing:6
             id:TitreEtConco
             size_hint_y:  0.10
+
             BoxLayout:
-                padding:0,50,0,0
+                size_hint_x:  0.54
+                orientation:"vertical"
                 Label:
                     color: [256, 256, 256, 1]
-                    font_size: 18
+
                     text: "Echantillon : " + root.titre
+                    halign:"center"
+                    text_size: self.width, None
+                Label:
+                    color: [256, 256, 256, 1]
+
+                    text: "Num Foetus : " + root.nfoetus
+                    halign:"center"
+                    text_size: self.width, None
+            BoxLayout:
+                size_hint_x:  0.54
+                orientation:"vertical"
+                Label:
+                    color: [256, 256, 256, 1]
+
+                    text: "Num M\u00e8re : " + root.nmere
+                    halign:"center"
+                    text_size: self.width, None
+                Label:
+                    color: [256, 256, 256, 1]
+
+                    text: "Num P\u00e8re : " + root.npere
+                    halign:"center"
+                    text_size: self.width, None
+
 
 
         BoxLayout:
-            padding:40,0,40,0
+            
             GridLayout:
                 cols: 1
                 rows: 16
@@ -540,7 +411,7 @@ ScreenManagement:
             id:ensemble_info
             orientation: "horizontal"
             size_hint_y:  0.25
-            padding:40,10,40,0
+            
 
             BoxLayout:
                 id:togglebutonEtLabel
@@ -557,7 +428,8 @@ ScreenManagement:
                     Label:
                         size_hint_y: 0.30
                         id:labelPrelev
-                        font_size: 19
+                        halign:"center"
+                        text_size: self.width, None
                         text:u'Le pr\u00e9l\u00e8vement foetal est: '
                         color: [256, 256, 256, 1]
                 BoxLayout:
@@ -573,7 +445,7 @@ ScreenManagement:
                         text:"Non Contamin\u00e9"
                         group:root.NvGroupe
                         font_size: 17
-                        on_state:root.InfoParametre["choix"]=0
+                        on_state:root.info_parametre["choix"]=0
                         on_state:root.CouleurBouton(0)
                         color: [256, 256, 256, 1]
                     ToggleButton:
@@ -586,60 +458,125 @@ ScreenManagement:
                         id:TButtonContamine
                         text: "Contamin\u00e9"
                         group:root.NvGroupe
-                        on_state:root.InfoParametre["choix"]=1
+                        on_state:root.info_parametre["choix"]=1
                         on_state:root.CouleurBouton(1)
         BoxLayout:
             spacing:70
-            size_hint_y:  0.06
-            padding:200,0,200,0
-
+            size_hint_y:  0.13
+            
             BoxLayout:
+                spacing:10
+                orientation: "vertical"
+                BoxLayout:
+                    BoxLayout:
+                    BoxLayout:
+                        padding:40,0,40,0
 
-            Button:
-                font_size: self.height/1.4
-                id:bouton_export
-                background_normal: ''
-                background_color: (75/255, 127/255, 209/255,1)
-                color: [0.949, 0.945, 0.945, 1]
-                on_release:root.show_save() 
-                text:'Export PDF'
-            BoxLayout:
-                
+                        Button:
+                            font_size: self.height/1.4
+                            id:bouton_export
+                            background_normal: ''
+                            background_color: (75/255, 127/255, 209/255,1)
+                            color: [0.949, 0.945, 0.945, 1]
+                            on_release:root.save()
+                            text:'Export PDF'
+                    BoxLayout:
+                BoxLayout:
+                    size_hint_y:  0.50
+                    orientation:"horizontal"
+                    Label:
+                        halign:"left"
+                        color: [256, 256, 256, 1]
+                        text:"Nombre minimum de marqueurs informatifs contamin\u00e9s="+root.N
+                        text_size: self.width, None
+                    Label:
+                        halign:"left"
+                        color: [256, 256, 256, 1]
+                        text_size: self.width, None
+                        text:"Hauteur de pics discriminant un all\u00e8le contamin\u00e9 d'un all\u00e8le normal="+root.H
+
 
 
 <LigneTableau>:
-    
+
     canvas:
         Color:
             rgba:root.color_mode
-
+        
         Rectangle:
             pos: self.pos
             size: self.size
-
+    
+    
     Label:
+        width: root.width - dp(10)
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:1
+                rectangle:(self.x, self.y, self.width, self.height)
+        markup:True
         id:col1
-        
+        size_hint: 1, 1
         color:root.color_text
-        text:root.t_col1
+        text:'[b]'+ root.t_col1+'[/b]'
+        text_size: self.width, None
+        halign: 'center'
+         #font_size: self.height/1.2
+        
     Label:
+        width: root.width - dp(10)
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:1
+                rectangle:(self.x, self.y, self.width, self.height)
+        markup:True
         id:col2
-        
-        
-        color:root.color_text2 
+        size_hint: 1, 1
+        text_size: self.width, None
+        halign: 'center'
+        color:root.color_text2
         text:root.t_col2
     Label:
+        width: root.width - dp(10)
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:1
+                rectangle:(self.x, self.y, self.width, self.height)
         id:col3
-        
-        
+        markup:True
+
         color:root.color_text
         text:root.t_col3
+        size_hint: 1, 1
+        text_size: self.width, None
+        halign: 'center'
 
+<ColSupp>:
+    Label:
+        width: root.width - dp(10)
+        canvas:
+            Color:
+                rgba:(75/255, 127/255, 209/255,1)
+            Line:
+                width:1
+                rectangle:(self.x, self.y, self.width, self.height)
+        id:col3
+        markup:True
 
-
+        color:root.color
+        text:root.t_col
+        size_hint: 1, 1
+        text_size: self.width, None
+        halign: 'center'
 
 <InfosConclusion>:
-    
+
     BoxLayout:
         padding:2
         canvas:
@@ -658,10 +595,11 @@ ScreenManagement:
                     pos: self.pos
                     size: self.size
             Label:
+                halign:"center"
                 text:root.TLigneInfo1
                 color: [256, 256, 256, 1]
                 size_hint: 1, 1
-                font_size: self.height/1.6
+                text_size: self.width, None
 
         BoxLayout:
             canvas:
@@ -672,10 +610,11 @@ ScreenManagement:
                     pos: self.pos
                     size: self.size
             Label:
+                halign:"center"
                 text:root.TLigneInfo2
                 color: [256, 256, 256, 1]
                 size_hint: 1, 1
-                font_size: self.height/1.6
+                text_size: self.width, None
         BoxLayout:
             canvas:
                 Color:
@@ -685,15 +624,17 @@ ScreenManagement:
                     pos: self.pos
                     size: self.size
             Label:
+                halign:"center"
                 text:root.TLigneInfo3
                 color: [256, 256, 256, 1]
                 size_hint: 1, 1
-                font_size: self.height/1.6
-        
+                text_size: self.width, None
+
 <ConcordanceEtSexe>:
     orientation:"horizontal"
+
     BoxLayout:
-        size_hint_x:0.42
+        size_hint_x:0.45
         padding:2
         canvas:
             Color:
@@ -706,19 +647,20 @@ ScreenManagement:
             text:root.info_sexe
             color: [256, 256, 256, 1]
             size_hint: 1, 1
-            font_size: self.height/2.10
+            halign:"center"
+            text_size: self.width, None
     BoxLayout:
         padding:2
-        orientation:"vertical"  
+        orientation:"vertical"
         canvas:
             Color:
                 rgba:(75/255, 127/255, 209/255,1)
             Line:
                 width:2
                 rectangle:(self.x, self.y, self.width, self.height)
-        
+
         BoxLayout:
-            
+
             orientation:"vertical"
             BoxLayout:
                 size_hint_y:  0.80
@@ -727,15 +669,16 @@ ScreenManagement:
                     color: [256, 256, 256, 1]
                     text:"Concordance M\u00e8re/Foetus :"
                     size_hint: 1, 1
-                    font_size: self.height/0.95
-                    
+                    text_size: self.width, None
+                    halign:"center"
+
                 Label:
                     size_hint_x:0.30
                     color: root.colorconcoM
                     text:root.conco_M
-                    
-                    font_size: self.height/0.95
-                    
+
+                    text_size: self.width, None
+
             BoxLayout:
                 id:test
                 size_hint_y:  0.80
@@ -744,20 +687,21 @@ ScreenManagement:
                     color: [256, 256, 256, 1]
                     text:"Concordance P\u00e8re/Foetus :"
                     size_hint: 1, 1
-                    font_size: self.height/0.95
-                    
+                    halign:"center"
+                    text_size: self.width, None
+
                 Label:
                     size_hint_x:0.30
                     halign: 'left'
                     color: root.colorconcoP
                     text:root.conco_P
-                    
-                    font_size: self.height/0.95
-                   
-                    
+
+                    text_size: self.width, None
+
+
 <CloseableHeader>:
     background_color:(75*3/255, 127*3/255, 209*3/255,1)
-    
+
     text:root.text1
     # variable tab_width
     size_hint_x: None
@@ -769,8 +713,8 @@ ScreenManagement:
         padding: 3
         spacing:5
         Label:
-        
-        
+
+
         BoxLayout:
             size_hint: None, 1
             orientation: 'vertical'
@@ -779,11 +723,23 @@ ScreenManagement:
                 source: 'croix.png'
                 on_touch_down:
                     if self.collide_point(*args[1].pos) :root.supr_onglets(root)
-                
 
-                        
+<LeaveDialog>:
+    orientation:"vertical"
+    Label:
+        text:"\u00CAtes-vous s\u00FBre de vouloir quitter ? \n(V\u00e9rifier qu'aucun des pdfs ne soient \n encore ouverts dans un lecteur de pdfs)"
+    BoxLayout:
+        size_hint_y:0.20
+        orientation:"horizontal"
+        Button:
+            text:"Annuler"
+            on_release:root.cancel()
+        Button:
+            text:"Quitter"
+            on_release:root.quitter()
+
+
 <ListItemButton>:
     background_normal:""
     selected_color: 75/255, 127/255, 209/255,1
     deselected_color: 180/255, 180/255, 180/255,1
-
