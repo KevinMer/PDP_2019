@@ -539,10 +539,15 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
         temoin_neg = Paragraph("<font size=12><font color=darkblue><b>Témoin positif: <font color=red>"+temoin_negatif+"</font></b></font></font>",style)
     
 
-    
-    alignement_col_gauche = 20
-    alignement_col_centre = 200
-    alignement_col_droite = 420    
+    if Concordance_mf == "NON" or Concordance_pf == "NON":
+        alignement_col_gauche = 600
+        alignement_col_centre = 20
+        alignement_col_droite = 220
+    else:
+        alignement_col_gauche = 20
+        alignement_col_centre = 200
+        alignement_col_droite = 420
+        
     
     aH = aH - h
     w, h = Par.wrap(aW, aH)
