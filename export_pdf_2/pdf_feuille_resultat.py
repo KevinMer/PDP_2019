@@ -454,7 +454,7 @@ def adaptation_font_size(mot,Concordance_mf,Concordance_pf):
             font=11.5
         return font
 
-def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage):
+def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage, temoin_positif, temoin_negatif):
 
     aW = 780
     aH = 500
@@ -528,10 +528,21 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
             tableau_principal.drawOn(canv, 10, aH-h)
 
     Par = Paragraph("<font size=7.5><font color=darkblue><u>Paramètres: </u></font><font color=darkblue>Nombre minimum de marqueurs contaminés: </font>"+str(seuil_marqueur)+"; <font color=darkblue>Hauteur de pic discriminant un allèle contaminé d’un allèle normal: </font>"+str(seuil_pic)+"</font>",style)
+
+    if temoin_positif == "Validé":
+        temoin_pos = Paragraph("<font size=12><font color=darkblue><b>Témoin positif: "+temoin_positif+"</b></font></font>",style)
+    else:
+        temoin_pos = Paragraph("<font size=12><font color=darkblue><b>Témoin positif: <font color=red>"+temoin_positif+"</font></b></font></font>",style)
+    if temoin_negatif == "Validé":
+        temoin_neg = Paragraph("<font size=12><font color=darkblue><b>Témoin positif: "+temoin_negatif+"</b></font></font>",style)
+    else:
+        temoin_neg = Paragraph("<font size=12><font color=darkblue><b>Témoin positif: <font color=red>"+temoin_negatif+"</font></b></font></font>",style)
+    
+
     
     alignement_col_gauche = 20
-    alignement_col_centre = 220
-    
+    alignement_col_centre = 200
+    alignement_col_droite = 420    
     
     aH = aH - h
     w, h = Par.wrap(aW, aH)
@@ -557,10 +568,14 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
 
     aH = aH - 5
     w, h = P_concordance_m.wrap(aW,aH)
-    P_concordance_m.drawOn(canv, alignement_col_gauche,aH-h)
+    P_concordance_m.drawOn(canv, alignement_col_centre,aH-h)
     
     w, h = P_nb_Nconta.wrap(aW,aH)
-    P_nb_Nconta.drawOn(canv, alignement_col_centre,aH-h)
+    P_nb_Nconta.drawOn(canv, alignement_col_droite,aH-h)
+
+    w, h = temoin_pos.wrap(aW,aH)
+    temoin_pos.drawOn(canv, alignement_col_gauche,aH-h)
+    
 
     if Concordance_pf == "OUI" and Concordance_mf == "NON":
         Par.drawOn(canv,80, aH-100)
@@ -569,14 +584,17 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
     aH = aH - (h+10)
     if Concordance_pf != "ABS":
         w, h = P_concordance_p.wrap(aW,aH)
-        P_concordance_p.drawOn(canv, alignement_col_gauche,aH-h)
+        P_concordance_p.drawOn(canv, alignement_col_centre,aH-h)
 
     w, h = P_nb_conta.wrap(aW,aH)
-    P_nb_conta.drawOn(canv, alignement_col_centre,aH-(h-10))
+    P_nb_conta.drawOn(canv, alignement_col_droite,aH-(h-10))
 
     aH = aH - h
     w, h = P_moy.wrap(aW,aH)
-    P_moy.drawOn(canv, alignement_col_centre,aH-(h-10))
+    P_moy.drawOn(canv, alignement_col_droite,aH-(h-10))
+    
+    w, h = temoin_neg.wrap(aW,aH)
+    temoin_neg.drawOn(canv, alignement_col_gauche,aH-(h-10))
         
     
     aH = aH - 5
@@ -591,7 +609,7 @@ def disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,tableau_principal,canv,Con
 
 
 
-def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage,presence_pere,Entite_d_Application, Emetteur, version):
+def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage,presence_pere, temoin_positif, temoin_negatif,Entite_d_Application, Emetteur, version):
     '''
     Input: 
       path : path to the directory to create the pdf
@@ -628,7 +646,7 @@ def creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fich
 
     t=style_result(data,Concordance_mf, Concordance_pf, l_info)
 
-    disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage)
+    disposition_pdf(CHU_HEADER,HEADER,nom_utilisateur,t,canv,Concordance_mf, Concordance_pf,Contamination,nb_info_Nconta,nb_info_Conta,moy_conta,nom,nb_mere,nb_foetus,nb_pere,date,Sexe, seuil_pic, seuil_marqueur,seuil_pourcentage, temoin_positif, temoin_negatif)
 
 
 
@@ -640,28 +658,30 @@ if __name__ == "__main__":
     ex_conta_maj = "PP16_JA_VR_050919_PP16.txt"
     ex_n_conc_pere = "non_concordance_pere.txt"
     ex_n_conc_mere = "181985_xfra_ja_200618_PP16.txt"
+
+    test=int(input("Tester le cas: \n 0:absence total de concordance \n 1:absence concordance chez mère uniquement \n 2:absence concordance chez père uniquement \n 3:échantillon non contaminé \n 4:échantillon contaminé \n 5:échantillon contaminé de façon majeur\n "))
     
-    test=input("Tester le cas: \n 0:absence total de concordance \n 1:absence concordance chez mère uniquement \n 2:absence concordance chez père uniquement \n 3:échantillon non contaminé \n 4:échantillon contaminé \n 5:échantillon contaminé de façon majeur\n ")
     if test == 0:
         M, F, P, Echantillon_F = lecture_fichier(n_conc)
         nom_projet="ex_n_conc"
         choix_utilisateur=10
-    if test == 1:
+        
+    elif test == 1:
         M, F, P, Echantillon_F = lecture_fichier( ex_n_conc_mere)
         nom_projet=" ex_n_conc_mere"
         choix_utilisateur=10
 
-    if test == 2:
+    elif test == 2:
         M, F, P, Echantillon_F = lecture_fichier(ex_n_conc_pere)
         nom_projet="ex_n_conc_pere"
         choix_utilisateur=0
 
-    if test == 3:
+    elif test == 3:
         M, F, P, Echantillon_F = lecture_fichier(ex_non_conta)
         nom_projet="ex_non_conta"
         choix_utilisateur=0
 
-    if test == 4:
+    elif test == 4:
         M, F, P, Echantillon_F = lecture_fichier(ex_conta)
         nom_projet="ex_conta"
         choix_utilisateur=1
@@ -671,13 +691,15 @@ if __name__ == "__main__":
         nom_projet="ex_conta_maj"
         choix_utilisateur=1
         
+        
+        
 
     path = ""
     dataframe, det_dataframe = Echantillon_F.analyse_donnees(M,F,P)
-    nom_fichier_mere="MMMMM"
-    nom_fichier_foetus="wwww"
-    nom_fichier_pere="QQQQ"
-    date="04/02/2042"
+    nom_fichier_mere="Mama"
+    nom_fichier_foetus="Bebe"
+    nom_fichier_pere="Papa"
+    date="15/01/2020"
     Sexe="M"
     path=""
     nom_utilisateur = "Nom prénom"
@@ -686,7 +708,9 @@ if __name__ == "__main__":
     seuil_marqueur = 0
     seuil_pourcentage = 0.42
     presence_pere = "OUI"
+    temoin_positif = "Non validé"
+    temoin_negatif = "Validé"
     Entite_d_Application=  "-  - SEQUENCEUR"
     Emetteur = "  PTBM -  -"
     version = "V.1"
-    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere,Entite_d_Application, Emetteur, version)
+    creation_PDF(path,nom_projet, nom_fichier_mere, nom_fichier_foetus, nom_fichier_pere, nom_pdf, Sexe, dataframe, det_dataframe, choix_utilisateur, nom_utilisateur, seuil_pic, seuil_marqueur,seuil_pourcentage, presence_pere, temoin_positif, temoin_negatif, Entite_d_Application, Emetteur, version)
